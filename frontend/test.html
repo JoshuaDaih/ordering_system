@@ -1,0 +1,144 @@
+<!-- Web-based Ordering System: Fullstack Version using Firebase -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>點餐系統（Firebase）</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .hidden { display: none; }
+    input, button { margin: 5px 0; padding: 5px; }
+    .balance { margin: 10px 0; font-weight: bold; }
+    .menu-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
+    .admin-log { margin-top: 30px; background: #f9f9f9; padding: 10px; }
+  </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div id="login-area">
+    <h2>登入或註冊</h2>
+    <input id="email" placeholder="Email"><br>
+    <input id="password" type="password" placeholder="密碼"><br>
+    <button onclick="login()">登入</button>
+    <button onclick="signup()">註冊</button>
+  </div>
+
+  <div id="user-area" class="hidden">
+    <h2>歡迎，<span id="user-display"></span></h2>
+    <div class="balance">餘額：$<span id="balance"></span></div>
+    <h3>目前可點選項</h3>
+    <div id="menu"></div>
+    <p>⏰ 點餐時限：<span id="deadline"></span></p>
+    <button onclick="logout()">登出</button>
+  </div>
+
+  <div id="admin-area" class="hidden">
+    <h2>後台管理（管理員）</h2>
+    <div id="admin-log"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+  apiKey: "AIzaSyBuwkVM2hYr9886-ArcTz-sbDEqRv_eJk",
+  authDomain: "ordering-system-305dd.firebaseapp.com",
+  projectId: "ordering-system-305dd",
+  storageBucket: "ordering-system-305dd.appspot.com",
+  messagingSenderId: "94040696182",
+  appId: "1:94040696182:web:2f08011a56885f9e263d97",
+  measurementId: "G-35ZHN9N25G"
+};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const orderDeadline = new Date();
+    orderDeadline.setHours(orderDeadline.getHours() + 2);
+    const menuItems = [
+      { name: "牛肉麵", price: 100 },
+      { name: "雞腿便當", price: 120 },
+      { name: "綠茶", price: 30 }
+    ];
+
+    let currentUser = null;
+
+    function signup() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.createUserWithEmailAndPassword(email, password).then(() => {
+        db.collection("users").doc(email).set({ balance: 300, isAdmin: false });
+        alert("註冊成功！");
+      }).catch(err => alert(err.message));
+    }
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.signInWithEmailAndPassword(email, password).then(userCred => {
+        currentUser = userCred.user;
+        db.collection("users").doc(currentUser.email).get().then(doc => {
+          if (!doc.exists) return;
+          const data = doc.data();
+          document.getElementById("login-area").classList.add("hidden");
+          if (data.isAdmin) {
+            document.getElementById("admin-area").classList.remove("hidden");
+            renderAdmin();
+          } else {
+            document.getElementById("user-area").classList.remove("hidden");
+            document.getElementById("user-display").textContent = currentUser.email;
+            renderMenu(data.balance);
+          }
+        });
+      }).catch(err => alert(err.message));
+    }
+
+    function logout() {
+      auth.signOut();
+      currentUser = null;
+      location.reload();
+    }
+
+    function renderMenu(balance) {
+      const menuDiv = document.getElementById("menu");
+      document.getElementById("balance").textContent = balance;
+      document.getElementById("deadline").textContent = orderDeadline.toLocaleTimeString();
+      menuDiv.innerHTML = "";
+      const now = new Date();
+
+      menuItems.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "menu-item";
+        div.innerHTML = ${item.name} - $${item.price}  +
+          (now > orderDeadline ? <span style='color:gray'>(已截止)</span> : `<button onclick="placeOrder('${item.name}', ${item.price}, ${balance})">點餐</button>`);
+        menuDiv.appendChild(div);
+      });
+    }
+
+    function placeOrder(name, price, balance) {
+      const now = new Date();
+      if (now > orderDeadline) return alert("已過點餐時間");
+      if (balance < price) return alert("餘額不足");
+      const newBalance = balance - price;
+      db.collection("users").doc(currentUser.email).update({ balance: newBalance });
+      db.collection("orders").add({ user: currentUser.email, name, price, time: firebase.firestore.Timestamp.now() });
+      alert("點餐成功！");
+      renderMenu(newBalance);
+    }
+
+    function renderAdmin() {
+      const logDiv = document.getElementById("admin-log");
+      logDiv.innerHTML = "<h3>所有訂單紀錄</h3>";
+      db.collection("orders").orderBy("time", "desc").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const p = document.createElement("p");
+          p.textContent = `${d.user} - ${d.name} ($${d.price}) at ${d.time.toDate().toLocaleString()}`;
+          logDiv.appendChild(p);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
