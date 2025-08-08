@@ -1,0 +1,12 @@
+{
+    "manager": {
+        "password": "80208020",
+        "remainingmoney": 0,
+        "identity": "manager"
+    },
+    "memberA": {
+        "password": "passwordA",
+        "remainingmoney": 1000,
+        "identity": "member"
+    }
+}

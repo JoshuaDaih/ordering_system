@@ -89,30 +89,33 @@ header {
 }
 
 #date-picker-container {
-    padding: 20px;
+    margin-bottom: 20px;
 }
 
-#date-picker {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-top: 10px;
+/* 新增 - 所有會員餘額列表樣式 */
+#member-balance-list-area {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#member-balance-list-area h3 {
+    margin-top: 0;
 }
 
 /* Member 訂餐區樣式 */
 #member-order-area {
-    background-color: #fff;
+    background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 500px;
-    margin: 0 auto;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* Manager Modal樣式 */
+/* 懸浮視窗樣式 */
 .modal {
-    display: none;
+    display: none; /* 預設隱藏 */
     position: fixed;
     z-index: 1;
     left: 0;
@@ -134,19 +137,25 @@ header {
     position: relative;
 }
 
-#modal-content-area {
-    text-align: left;
+/* 關閉按鈕樣式 */
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
 }
 
-#modal-content-area input,
-#modal-content-area select,
-#modal-content-area button {
-    display: block;
-    width: 100%;
-    padding: 8px;
-    margin-top: 10px;
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
 }
 
+/* 訂單與餐點選單樣式 */
 .order-item {
     display: flex;
     justify-content: space-between;
@@ -191,12 +200,6 @@ header {
     flex: 1;
 }
 
-#member-balance-list {
-    margin-top: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-}
-
 #balance-list {
     list-style-type: none;
     padding: 0;
@@ -207,7 +210,7 @@ header {
     border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
-    align-items: center; /* 讓餘額和儲值按鈕對齊 */
+    align-items: center;
 }
 
 .recharge-controls {
@@ -220,7 +223,7 @@ header {
     width: 80px;
     padding: 5px;
     font-size: 0.9em;
-    display: inline; /* 確保輸入框在同一行 */
+    display: inline;
 }
 
 .recharge-controls button {
