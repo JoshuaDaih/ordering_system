@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂餐網頁</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="login-container">
+            <h1>登入</h1>
+            <div class="input-group">
+                <input type="text" id="username" placeholder="帳號">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="密碼">
+            </div>
+            <div class="button-group">
+                <button id="login-btn">登入</button>
+            </div>
+        </div>
+        
+        <div id="main-container" style="display: none;">
+            <header>
+                <span id="welcome-msg"></span>
+                <span id="balance-info"></span> <button id="logout-btn">登出</button>
+            </header>
+            
+            <div id="manager-dashboard" style="display: none;">
+                <div id="date-picker-container">
+                    <label for="date-picker">選擇日期：</label>
+                    <input type="date" id="date-picker">
+                </div>
+            </div>
+            
+            <div id="member-order-area" style="display: none;"></div>
+            
+            <div id="manager-modal" class="modal">
+                <div class="modal-content">
+                    <h2 id="modal-date"></h2>
+                    <div id="modal-content-area"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

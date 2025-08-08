@@ -1,8 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 帳號密碼，此處為前端測試版，正式環境應從後端驗證
-    const testAccounts = {
-        'manager': '80208020',
-        'member': '12345678'
+    // 預設的使用者帳號資料
+    // 注意：這裡使用 localStorage 模擬資料庫，實際後端應從資料庫讀取
+    const initialUserAccounts = {
+        'manager': {
+            password: '80208020',
+            remainingmoney: 0,
+            identity: 'manager'
+        },
+        'memberA': {
+            password: 'passwordA',
+            remainingmoney: 1000,
+            identity: 'member'
+        },
+        'memberB': {
+            password: 'passwordB',
+            remainingmoney: 850,
+            identity: 'member'
+        },
+        'memberC': {
+            password: 'passwordC',
+            remainingmoney: 1200,
+            identity: 'member'
+        }
     };
 
     // 取得 DOM 元素
@@ -12,39 +31,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
-    // 移除原有的 loginMessage 變數
     const welcomeMsg = document.getElementById('welcome-msg');
-    const calendarContainer = document.getElementById('calendar-container');
-    const modal = document.getElementById('modal');
-    const modalCloseBtn = document.querySelector('.close-btn');
+    const balanceInfo = document.getElementById('balance-info');
+    const managerDashboard = document.getElementById('manager-dashboard');
+    const datePicker = document.getElementById('date-picker');
+    const memberOrderArea = document.getElementById('member-order-area');
+    const managerModal = document.getElementById('manager-modal');
     const modalDate = document.getElementById('modal-date');
     const modalContentArea = document.getElementById('modal-content-area');
 
     let currentRole = null;
     let selectedDate = null;
-    let currentMonth = new Date();
 
-    // 初始化儲存餐點和訂單的 localStorage
+    // 初始化儲存餐點、訂單和使用者帳號的 localStorage
     if (!localStorage.getItem('meals')) {
         localStorage.setItem('meals', JSON.stringify({}));
     }
     if (!localStorage.getItem('orders')) {
         localStorage.setItem('orders', JSON.stringify({}));
     }
+    if (!localStorage.getItem('userAccounts')) {
+        localStorage.setItem('userAccounts', JSON.stringify(initialUserAccounts));
+    }
 
     // 登入功能
     loginBtn.addEventListener('click', () => {
         const username = usernameInput.value;
         const password = passwordInput.value;
+        const userAccounts = JSON.parse(localStorage.getItem('userAccounts'));
 
-        if (testAccounts[username] === password) {
+        if (userAccounts[username] && userAccounts[username].password === password) {
             currentRole = username;
             welcomeMsg.textContent = `歡迎回來，${currentRole}!`;
             loginContainer.style.display = 'none';
             mainContainer.style.display = 'block';
-            renderCalendar();
+
+            if (userAccounts[currentRole].identity === 'manager') {
+                managerDashboard.style.display = 'block';
+                memberOrderArea.style.display = 'none';
+                balanceInfo.style.display = 'none'; // Manager 不顯示個人餘額
+                
+                const today = new Date();
+                const todayFormatted = today.toISOString().split('T')[0];
+                datePicker.value = todayFormatted;
+                selectedDate = todayFormatted;
+                modalDate.textContent = selectedDate;
+                showManagerModal();
+            } else if (userAccounts[currentRole].identity === 'member') {
+                managerDashboard.style.display = 'none';
+                memberOrderArea.style.display = 'block';
+                balanceInfo.style.display = 'inline'; // Member 顯示個人餘額
+                updateBalanceInfo();
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.getMonth() + 1;
+                const day = today.getDate();
+                selectedDate = `${year}-${month}-${day}`;
+                renderMemberOrderArea();
+            }
         } else {
-            // 使用 alert 顯示錯誤訊息
             alert('帳號或密碼錯誤。');
         }
     });
@@ -56,179 +101,237 @@ document.addEventListener('DOMContentLoaded', () => {
         mainContainer.style.display = 'none';
         usernameInput.value = '';
         passwordInput.value = '';
-        // 移除原有的 loginMessage 內容清空
+        managerModal.style.display = 'none';
+        balanceInfo.style.display = 'none';
+        datePicker.value = '';
     });
 
-    // 動態生成月曆
-    function renderCalendar() {
-        calendarContainer.innerHTML = '';
-        const today = new Date();
-        const year = currentMonth.getFullYear();
-        const month = currentMonth.getMonth();
-
-        const firstDayOfMonth = new Date(year, month, 1).getDay();
-        const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
-
-        // 建立月曆標題
-        const calendarTitle = document.createElement('h2');
-        calendarTitle.textContent = `${year}年 ${month + 1}月`;
-        calendarTitle.style.gridColumn = '1 / -1';
-        calendarContainer.appendChild(calendarTitle);
-
-        // 建立星期標題
-        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        weekdays.forEach(day => {
-            const weekdayEl = document.createElement('div');
-            weekdayEl.textContent = day;
-            weekdayEl.classList.add('calendar-day');
-            weekdayEl.style.cursor = 'default';
-            weekdayEl.style.backgroundColor = '#eef';
-            calendarContainer.appendChild(weekdayEl);
-        });
-
-        // 填補上個月的空白
-        for (let i = 0; i < firstDayOfMonth; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.classList.add('calendar-day', 'not-current-month');
-            calendarContainer.appendChild(emptyDay);
-        }
-
-        // 渲染本月日期
-        for (let i = 1; i <= lastDateOfMonth; i++) {
-            const dayEl = document.createElement('div');
-            dayEl.textContent = i;
-            dayEl.classList.add('calendar-day');
-            
-            const fullDate = new Date(year, month, i);
-            const dateKey = `${year}-${month + 1}-${i}`;
-
-            if (fullDate.toDateString() === today.toDateString()) {
-                dayEl.classList.add('today');
-            }
-
-            dayEl.addEventListener('click', () => {
-                selectedDate = dateKey;
-                modalDate.textContent = dateKey;
-                showModal();
-            });
-
-            calendarContainer.appendChild(dayEl);
-        }
+    // 顯示個人餘額
+    function updateBalanceInfo() {
+        const userAccounts = JSON.parse(localStorage.getItem('userAccounts'));
+        balanceInfo.textContent = `餘額: $${userAccounts[currentRole].remainingmoney}`;
     }
 
-    // 顯示彈出視窗 (Modal)
-    function showModal() {
-        modal.style.display = 'block';
-        if (currentRole === 'manager') {
-            renderManagerModal();
-        } else if (currentRole === 'member') {
-            renderMemberModal();
-        }
-    }
+    // Manager 選擇日期後，顯示彈出視窗
+    datePicker.addEventListener('change', (e) => {
+        selectedDate = e.target.value;
+        modalDate.textContent = selectedDate;
+        showManagerModal();
+    });
 
-    // Manager 角色視窗
-    function renderManagerModal() {
-        modalContentArea.innerHTML = `
-            <h3>新增當日餐點選項 (${selectedDate})</h3>
-            <label for="lunch-name">午餐名稱:</label>
-            <input type="text" id="lunch-name">
-            <label for="dinner-name">晚餐名稱:</label>
-            <input type="text" id="dinner-name">
-            <button id="save-meal-btn">儲存</button>
-            <hr>
-            <h3>目前餐點選項</h3>
-            <div id="current-meals"></div>
-        `;
-
+    // 顯示 Manager 的彈出視窗
+    function showManagerModal() {
+        managerModal.style.display = 'block';
+        
         const meals = JSON.parse(localStorage.getItem('meals')) || {};
-        const currentMeals = meals[selectedDate] || { lunch: '未設定', dinner: '未設定' };
-        document.getElementById('current-meals').innerHTML = `
-            <p>午餐: ${currentMeals.lunch}</p>
-            <p>晚餐: ${currentMeals.dinner}</p>
-        `;
+        let currentMeals = meals[selectedDate] || [];
 
-        document.getElementById('save-meal-btn').addEventListener('click', () => {
-            const lunchName = document.getElementById('lunch-name').value;
-            const dinnerName = document.getElementById('dinner-name').value;
-            
-            meals[selectedDate] = {
-                lunch: lunchName || '未設定',
-                dinner: dinnerName || '未設定'
-            };
-            localStorage.setItem('meals', JSON.stringify(meals));
-            alert('餐點選項已儲存！');
-            showModal(); // 更新 modal 顯示
+        // 動態渲染餐點列表
+        let currentMealsHTML = '<h4>目前餐點選項</h4>';
+        if (currentMeals.length > 0) {
+            currentMealsHTML += '<ul id="current-meals-list">';
+            currentMeals.forEach((meal, index) => {
+                currentMealsHTML += `
+                    <li>
+                        <span>${meal.name} ($${meal.price})</span>
+                        <button class="delete-meal-btn" data-index="${index}">刪除</button>
+                    </li>
+                `;
+            });
+            currentMealsHTML += '</ul>';
+        } else {
+            currentMealsHTML += '<p>尚未設定餐點</p>';
+        }
+
+        // 動態渲染 Member 餘額列表及儲值功能
+        const userAccounts = JSON.parse(localStorage.getItem('userAccounts'));
+        let balanceListHTML = '<h3>所有 Member 餘額</h3><ul id="balance-list">';
+        
+        // 篩選出所有身分為 'member' 的使用者
+        const membersOnly = Object.keys(userAccounts).filter(user => userAccounts[user].identity === 'member');
+
+        membersOnly.forEach(member => {
+            balanceListHTML += `
+                <li data-member-name="${member}">
+                    <span>${member}: $${userAccounts[member].remainingmoney}</span>
+                    <div class="recharge-controls">
+                        <input type="number" class="recharge-amount-input" placeholder="金額" min="1">
+                        <button class="recharge-btn">儲值</button>
+                    </div>
+                </li>
+            `;
+        });
+        balanceListHTML += '</ul>';
+
+        modalContentArea.innerHTML = `
+            <h3>新增當日餐點選項</h3>
+            <div id="new-meal-inputs">
+                <div id="meal-input-group">
+                    <input type="text" id="new-meal-name" placeholder="餐點名稱">
+                    <input type="number" id="new-meal-price" placeholder="價格" min="0">
+                </div>
+                <button id="add-meal-btn">新增餐點</button>
+            </div>
+            <hr>
+            ${currentMealsHTML}
+            <hr>
+            <div id="member-balance-list">${balanceListHTML}</div>
+        `;
+        
+        // 新增餐點按鈕事件
+        document.getElementById('add-meal-btn').addEventListener('click', () => {
+            const mealName = document.getElementById('new-meal-name').value;
+            const mealPrice = document.getElementById('new-meal-price').value;
+            if (mealName && mealPrice && mealPrice >= 0) {
+                currentMeals.push({ name: mealName, price: parseFloat(mealPrice) });
+                meals[selectedDate] = currentMeals;
+                localStorage.setItem('meals', JSON.stringify(meals));
+                showManagerModal(); // 重新渲染 modal
+            } else {
+                alert('請輸入有效的餐點名稱和價格。');
+            }
+        });
+
+        // 刪除餐點按鈕事件
+        document.querySelectorAll('.delete-meal-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const indexToDelete = e.target.dataset.index;
+                currentMeals.splice(indexToDelete, 1);
+                meals[selectedDate] = currentMeals;
+                localStorage.setItem('meals', JSON.stringify(meals));
+                showManagerModal();
+            });
+        });
+
+        // 儲值按鈕事件
+        document.querySelectorAll('.recharge-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const memberLi = e.target.closest('li');
+                const memberName = memberLi.dataset.memberName;
+                const amountInput = memberLi.querySelector('.recharge-amount-input');
+                const amount = parseFloat(amountInput.value);
+
+                if (amount > 0) {
+                    const userAccounts = JSON.parse(localStorage.getItem('userAccounts'));
+                    userAccounts[memberName].remainingmoney = (userAccounts[memberName].remainingmoney || 0) + amount;
+                    localStorage.setItem('userAccounts', JSON.stringify(userAccounts));
+                    amountInput.value = ''; // 清空輸入框
+                    alert(`已成功為 ${memberName} 儲值 $${amount}`);
+                    showManagerModal(); // 重新渲染 modal 以更新餘額
+                } else {
+                    alert('請輸入有效的儲值金額。');
+                }
+            });
         });
     }
 
-    // Member 角色視窗
-    function renderMemberModal() {
+    // 顯示 Member 的訂餐畫面
+    function renderMemberOrderArea() {
         const meals = JSON.parse(localStorage.getItem('meals')) || {};
         const orders = JSON.parse(localStorage.getItem('orders')) || {};
-        const currentMeals = meals[selectedDate] || { lunch: '今日無餐點', dinner: '今日無餐點' };
-        const currentOrder = orders[selectedDate] && orders[selectedDate][currentRole] ? orders[selectedDate][currentRole] : { lunch: '未訂', dinner: '未訂' };
+        const currentMeals = meals[selectedDate] || [];
+        const currentOrder = orders[selectedDate] && orders[selectedDate][currentRole] ? orders[selectedDate][currentRole] : {};
+        
+        let totalCost = 0;
+        let orderSummaryHTML = '';
+        currentMeals.forEach(meal => {
+            const orderedItem = currentOrder[meal.name] || { count: 0, price: meal.price };
+            if (orderedItem.count > 0) {
+                totalCost += orderedItem.count * orderedItem.price;
+                orderSummaryHTML += `<p>${meal.name}: ${orderedItem.count} 份</p>`;
+            }
+        });
+        
+        if (orderSummaryHTML === '') {
+            orderSummaryHTML = '<p>尚無訂單</p>';
+        }
 
-        modalContentArea.innerHTML = `
+        memberOrderArea.innerHTML = `
             <h3>訂購今日餐點 (${selectedDate})</h3>
-            <p>午餐選項: ${currentMeals.lunch}</p>
-            <p>晚餐選項: ${currentMeals.dinner}</p>
+            <h4>你的訂單 (總計: $${totalCost})</h4>
+            <div id="order-summary">${orderSummaryHTML}</div>
             <hr>
-            <h4>你的訂單</h4>
-            <p>午餐: ${currentOrder.lunch}</p>
-            <p>晚餐: ${currentOrder.dinner}</p>
-            <hr>
-            <label for="lunch-order">午餐:</label>
-            <select id="lunch-order">
-                <option value="">不訂購</option>
-                <option value="${currentMeals.lunch}">${currentMeals.lunch}</option>
-            </select>
-            <label for="dinner-order">晚餐:</label>
-            <select id="dinner-order">
-                <option value="">不訂購</option>
-                <option value="${currentMeals.dinner}">${currentMeals.dinner}</option>
-            </select>
+            <h4>選擇餐點</h4>
+            <div id="meal-options-area"></div>
             <button id="save-order-btn">送出訂單</button>
         `;
 
-        // 動態更新 select 選項
-        const lunchSelect = document.getElementById('lunch-order');
-        const dinnerSelect = document.getElementById('dinner-order');
+        const mealOptionsArea = document.getElementById('meal-options-area');
+        
+        if (currentMeals.length > 0) {
+            currentMeals.forEach(meal => {
+                const orderedCount = (currentOrder[meal.name] && currentOrder[meal.name].count) || 0;
+                const orderItem = document.createElement('div');
+                orderItem.classList.add('order-item');
+                orderItem.innerHTML = `
+                    <span>${meal.name} ($${meal.price})</span>
+                    <div class="order-controls">
+                        <button class="quantity-btn minus-btn" data-meal-name="${meal.name}">-</button>
+                        <input type="text" class="quantity" data-meal-name="${meal.name}" value="${orderedCount}" readonly>
+                        <button class="quantity-btn plus-btn" data-meal-name="${meal.name}">+</button>
+                    </div>
+                `;
+                mealOptionsArea.appendChild(orderItem);
+            });
+        } else {
+            mealOptionsArea.innerHTML = '<p>今日無餐點可供訂購。</p>';
+        }
 
-        // 如果 manager 尚未設定餐點，則將選項設為無效
-        if(currentMeals.lunch === '今日無餐點') {
-            lunchSelect.innerHTML = '<option value="">今日無餐點</option>';
-            lunchSelect.disabled = true;
-        }
-        if(currentMeals.dinner === '今日無餐點') {
-            dinnerSelect.innerHTML = '<option value="">今日無餐點</option>';
-            dinnerSelect.disabled = true;
-        }
+        memberOrderArea.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const mealName = event.target.dataset.meal-name;
+                const quantityInput = document.querySelector(`#member-order-area .quantity[data-meal-name="${mealName}"]`);
+                let currentQuantity = parseInt(quantityInput.value);
+                
+                if (event.target.classList.contains('plus-btn')) {
+                    currentQuantity++;
+                } else if (event.target.classList.contains('minus-btn') && currentQuantity > 0) {
+                    currentQuantity--;
+                }
+                quantityInput.value = currentQuantity;
+            });
+        });
 
         document.getElementById('save-order-btn').addEventListener('click', () => {
-            const lunchOrder = document.getElementById('lunch-order').value || '不訂購';
-            const dinnerOrder = document.getElementById('dinner-order').value || '不訂購';
+            const newOrder = {};
+            let newTotalCost = 0;
+            const userAccounts = JSON.parse(localStorage.getItem('userAccounts'));
             
-            // 建立訂單物件
-            const newOrder = { lunch: lunchOrder, dinner: dinnerOrder };
+            memberOrderArea.querySelectorAll('.quantity').forEach(input => {
+                const mealName = input.dataset.mealName;
+                const meal = currentMeals.find(m => m.name === mealName);
+                const count = parseInt(input.value);
+                
+                if (count > 0) {
+                    newOrder[mealName] = { name: mealName, count: count, price: meal.price };
+                    newTotalCost += count * meal.price;
+                }
+            });
+
+            if (newTotalCost > (userAccounts[currentRole].remainingmoney || 0)) {
+                alert('餘額不足，無法送出訂單。');
+                return;
+            }
+
+            if (Object.keys(newOrder).length > 0) {
+                const oldOrder = orders[selectedDate] && orders[selectedDate][currentRole] ? orders[selectedDate][currentRole] : {};
+                let oldTotalCost = 0;
+                for (const mealName in oldOrder) {
+                    oldTotalCost += oldOrder[mealName].count * oldOrder[mealName].price;
+                }
+
+                const paymentDifference = newTotalCost - oldTotalCost;
+                
+                userAccounts[currentRole].remainingmoney -= paymentDifference;
+                localStorage.setItem('userAccounts', JSON.stringify(userAccounts));
+                updateBalanceInfo();
+            }
             
-            // 更新 orders
             orders[selectedDate] = orders[selectedDate] || {};
             orders[selectedDate][currentRole] = newOrder;
             localStorage.setItem('orders', JSON.stringify(orders));
             alert('訂單已送出！');
-            showModal(); // 更新 modal 顯示
+            renderMemberOrderArea();
         });
     }
-
-    // 關閉彈出視窗
-    modalCloseBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    // 點擊視窗外關閉
-    window.addEventListener('click', (event) => {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    });
 });
