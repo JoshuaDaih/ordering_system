@@ -1,12 +1,11 @@
 from flask import Flask, request, jsonify, render_template
 import json
 import os
-from datetime import datetime
+from datetime import datetime, time, timedelta
 
 app = Flask(__name__)
 
 # 定義資料檔案路徑
-# 請確保這三個檔案在同一個資料夾中
 MEMBER_DATA_FILE = 'memberdata.json'
 MEAL_DATA_FILE = 'mealdata.json'
 CALENDAR_DATA_FILE = 'calendardata.json'
@@ -20,7 +19,6 @@ def load_data(file_name):
         with open(file_name, 'r', encoding='utf-8') as f:
             return json.load(f)
     else:
-        # 根據檔案名稱創建預設空資料
         if file_name == MEMBER_DATA_FILE:
             return {
                 'manager': {
@@ -31,6 +29,11 @@ def load_data(file_name):
                 'memberA': {
                     'password': 'passwordA',
                     'remainingmoney': 1000,
+                    'identity': 'member'
+                },
+                'memberB2': {
+                    'password': 'passwordB2',
+                    'remainingmoney': 500,
                     'identity': 'member'
                 }
             }
@@ -56,7 +59,6 @@ save_data(calendar_data, CALENDAR_DATA_FILE)
 @app.route('/')
 def index():
     """渲染前端的 HTML 頁面"""
-    # 這裡假設你的前端檔案在一個名為 'templates' 的資料夾中
     return render_template('index.html')
 
 @app.route('/login', methods=['POST'])
@@ -76,24 +78,35 @@ def login():
 
 @app.route('/manager/meals', methods=['POST'])
 def set_meals():
-    """Manager 設定或更新當日餐點"""
+    """Manager 設定或更新當日餐點，現在能處理午餐/晚餐和截止時間"""
     data = request.json
     selected_date = data.get('date')
     meals_list = data.get('meals')
+    meal_type = data.get('mealType')
+    deadline = data.get('deadline')
     
-    if not selected_date or not isinstance(meals_list, list):
+    if not selected_date or not isinstance(meals_list, list) or not meal_type or not deadline:
         return jsonify({'message': '資料格式錯誤'}), 400
     
-    meal_data[selected_date] = meals_list
+    date_key = f"{selected_date}-{meal_type}"
+    meal_data[date_key] = {
+        'meals': meals_list,
+        'deadline': deadline
+    }
     save_data(meal_data, MEAL_DATA_FILE)
     
-    return jsonify({'message': '餐點已更新', 'meals': meals_list}), 200
+    return jsonify({'message': '餐點已更新', 'meals': meals_list, 'deadline': deadline}), 200
 
 @app.route('/manager/meals/<string:date>', methods=['GET'])
 def get_meals_by_date(date):
-    """Manager 取得當日已設定餐點"""
-    meals = meal_data.get(date, [])
-    return jsonify({'meals': meals}), 200
+    """Manager 取得當日已設定餐點，現在能回傳午餐和晚餐"""
+    lunch_data = meal_data.get(f"{date}-lunch", {'meals': [], 'deadline': '11:30'})
+    dinner_data = meal_data.get(f"{date}-dinner", {'meals': [], 'deadline': '17:00'})
+    
+    return jsonify({
+        'lunch': lunch_data,
+        'dinner': dinner_data
+    }), 200
 
 @app.route('/manager/balances', methods=['GET'])
 def get_all_member_balances():
@@ -134,9 +147,10 @@ def place_order():
     data = request.json
     username = data.get('username')
     selected_date = data.get('date')
+    meal_type = data.get('mealType')
     new_order = data.get('order')
     
-    if not username or not selected_date or not isinstance(new_order, dict):
+    if not username or not selected_date or not meal_type or not isinstance(new_order, dict):
         return jsonify({'message': '資料格式錯誤'}), 400
         
     user_info = member_data.get(username)
@@ -146,13 +160,35 @@ def place_order():
     # 計算訂單總價
     new_total_cost = sum(item.get('count', 0) * item.get('price', 0) for item in new_order.values())
     
-    # 檢查餘額
-    if user_info['remainingmoney'] < new_total_cost:
-        return jsonify({'message': '餘額不足，無法送出訂單'}), 402
+    # 檢查餘額 (根據您的要求，這裡邏輯已變更為檢查 newTotalCost < 0)
+    if new_total_cost < 0:
+        return jsonify({'message': '訂單總金額不能為負數'}), 400
+    
+    # 檢查是否超過截止時間
+    date_key = f"{selected_date}-{meal_type}"
+    meal_info = meal_data.get(date_key, {})
+    if meal_info:
+        deadline_str = meal_info.get('deadline')
+        if deadline_str:
+            try:
+                # 取得當前時間 (UTC+8)
+                now = datetime.utcnow() + timedelta(hours=8)
+                
+                # 將截止時間字串轉換為 time 物件
+                deadline_time = datetime.strptime(deadline_str, '%H:%M').time()
+                
+                # 結合日期和時間進行比較
+                order_date = datetime.strptime(selected_date, '%Y-%m-%d')
+                deadline_datetime = datetime.combine(order_date.date(), deadline_time)
+                
+                if now > deadline_datetime:
+                    return jsonify({'message': f'已超過 {deadline_str} 截止時間，無法訂餐。'}), 403
+            except ValueError:
+                return jsonify({'message': '無效的截止時間格式'}), 400
 
     # 處理舊訂單，並計算差額
-    old_orders_for_date = calendar_data.get(selected_date, {})
-    old_order = old_orders_for_date.get(username, {})
+    order_key = f"{selected_date}{meal_type}"
+    old_order = user_info.get(order_key, {})
     old_total_cost = sum(item.get('count', 0) * item.get('price', 0) for item in old_order.values())
     
     payment_difference = new_total_cost - old_total_cost
@@ -160,25 +196,24 @@ def place_order():
     # 更新餘額
     user_info['remainingmoney'] -= payment_difference
     
-    # 儲存新訂單到 calendar_data
-    if selected_date not in calendar_data:
-        calendar_data[selected_date] = {}
-    
-    calendar_data[selected_date][username] = new_order
+    # 儲存新訂單到 memberdata
+    user_info[order_key] = new_order
     
     save_data(member_data, MEMBER_DATA_FILE)
-    save_data(calendar_data, CALENDAR_DATA_FILE)
     
     return jsonify({'message': '訂單已送出', 'balance': user_info['remainingmoney']}), 200
 
 @app.route('/member/orders/<string:username>/<string:date>', methods=['GET'])
-def get_member_order(username, date):
-    """會員取得個人某日的訂單"""
-    order = calendar_data.get(date, {}).get(username, {})
-    return jsonify({'order': order}), 200
-
+def get_member_orders(username, date):
+    """會員取得個人某日的午餐和晚餐訂單"""
+    user_info = member_data.get(username, {})
+    lunch_order = user_info.get(f"{date}lunch", {})
+    dinner_order = user_info.get(f"{date}dinner", {})
+    
+    return jsonify({
+        'lunch': lunch_order,
+        'dinner': dinner_order
+    }), 200
 
 if __name__ == '__main__':
-    # 執行 Flask 伺服器
-    # 記得在專案目錄下創建一個 templates 資料夾，並將 index.html 放在裡面
     app.run(debug=True, host='0.0.0.0', port=5000)

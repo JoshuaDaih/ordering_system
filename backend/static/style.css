@@ -196,8 +196,12 @@ header {
     margin-bottom: 10px;
 }
 
-#meal-input-group input {
+#meal-input-group input,
+#meal-input-group select { /* 新增 select 樣式 */
     flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 #balance-list {
@@ -241,4 +245,22 @@ header {
     align-items: center;
     padding: 5px;
     border-bottom: 1px dotted #ccc;
+}
+
+.meal-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.meal-section-header h4 {
+    margin: 0;
+}
+
+/* 新增時間選擇器樣式 */
+.meal-section-header input[type="time"] {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }

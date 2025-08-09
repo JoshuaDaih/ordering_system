@@ -6,7 +6,9 @@
     },
     "memberA": {
         "password": "passwordA",
-        "remainingmoney": 1100,
-        "identity": "member"
+        "remainingmoney": 1000,
+        "identity": "member",
+        "250809lunch" : ["meal", 100],
+        "250809dinner" : ["meal", 100]
     }
 }
