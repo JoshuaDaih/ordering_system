@@ -21,3 +21,4 @@ EXPOSE 8080
 # --bind 0.0.0.0:8080 讓應用程式能從外部存取
 # main:app 代表執行 main.py 檔案中的 app 實例
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "main:app"]
+#
