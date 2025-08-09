@@ -1,12 +1,33 @@
 {
+    /*
+      此檔案用於儲存所有使用者資料，架構如下：
+      {
+        "使用者名稱1": {
+          "password": "使用者密碼",
+          "remainingmoney": 餘額 (數字),
+          "identity": "使用者身份" ("member" 或 "manager")
+        },
+        ...
+      }
+    */
     "manager": {
-        "password": "80208020",
-        "remainingmoney": 0,
-        "identity": "manager"
+      "password": "80208020",
+      "remainingmoney": 0,
+      "identity": "manager"
     },
     "memberA": {
-        "password": "passwordA",
-        "remainingmoney": 1100,
-        "identity": "member"
+      "password": "passwordA",
+      "remainingmoney": 1000,
+      "identity": "member"
+    },
+    "memberB": {
+      "password": "passwordB",
+      "remainingmoney": 850,
+      "identity": "member"
+    },
+    "memberC": {
+      "password": "passwordC",
+      "remainingmoney": 1200,
+      "identity": "member"
     }
-}
+  }
