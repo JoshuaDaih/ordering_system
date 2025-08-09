@@ -17,8 +17,6 @@ COPY . .
 EXPOSE 8080
 
 # 容器啟動時，使用 gunicorn 啟動 Flask 應用程式
-# gunicorn 是用於生產環境的高效能 WSGI 伺服器
 # --bind 0.0.0.0:8080 讓應用程式能從外部存取
 # main:app 代表執行 main.py 檔案中的 app 實例
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "main:app"]
-#
