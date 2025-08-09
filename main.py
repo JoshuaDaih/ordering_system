@@ -79,7 +79,7 @@ def login():
             'identity': user_info['identity']
         }), 200
     else:
-        return jsonify({'message': '帳號或密碼錯誤'}), 401
+        return jsonify({member_data.get()}), 401
 
 @app.route('/manager/meals', methods=['POST'])
 def set_meals():
