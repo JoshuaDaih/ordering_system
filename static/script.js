@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRole = null;
     let selectedDate = null;
     
-    const API_BASE_URL = 'http://127.0.0.1:5000';
+    const API_BASE_URL = '';
 
     function getTodayFormatted() {
         const today = new Date();
