@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import json
 import os
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -17,8 +17,13 @@ def load_data(file_name):
     """
     if os.path.exists(file_name) and os.path.getsize(file_name) > 0:
         with open(file_name, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                print(f"警告: {file_name} 檔案內容無效，將建立新的檔案。")
+                return {}
     else:
+        print(f"{file_name} 檔案不存在，將建立新的檔案。")
         if file_name == MEMBER_DATA_FILE:
             return {
                 'manager': {
@@ -117,6 +122,23 @@ def get_all_member_balances():
             member_balances[user] = data['remainingmoney']
     return jsonify({'balances': member_balances}), 200
 
+@app.route('/manager/order_summary/<string:date>/<string:meal_type>', methods=['GET'])
+def get_order_summary(date, meal_type):
+    """Manager 取得某日某餐別的餐點訂購總數"""
+    order_summary = {}
+    date_key_prefix = f"{date}{meal_type}"
+    
+    for username, user_info in member_data.items():
+        if user_info['identity'] == 'member':
+            order = user_info.get(date_key_prefix, {})
+            for meal_name, meal_info in order.items():
+                if meal_name in order_summary:
+                    order_summary[meal_name] += meal_info.get('count', 0)
+                else:
+                    order_summary[meal_name] = meal_info.get('count', 0)
+    
+    return jsonify({'summary': order_summary}), 200
+
 @app.route('/member/recharge', methods=['POST'])
 def recharge_member():
     """為會員儲值"""
@@ -141,6 +163,40 @@ def get_member_balance(username):
     balance = member_data.get(username, {}).get('remainingmoney', 0)
     return jsonify({'balance': balance}), 200
 
+@app.route('/member/orders/<string:username>/<string:date>', methods=['GET'])
+def get_member_orders_by_date(username, date):
+    """會員取得個人某日的午餐和晚餐訂單"""
+    user_info = member_data.get(username, {})
+    lunch_order = user_info.get(f"{date}lunch", {})
+    dinner_order = user_info.get(f"{date}dinner", {})
+    
+    return jsonify({
+        'lunch': lunch_order,
+        'dinner': dinner_order
+    }), 200
+
+@app.route('/member/orders/<string:username>', methods=['GET'])
+def get_member_all_orders(username):
+    """會員取得所有歷史訂單"""
+    user_info = member_data.get(username, {})
+    if not user_info or user_info['identity'] != 'member':
+        return jsonify({'message': '會員不存在或身分不正確'}), 404
+
+    history_orders = {}
+    for key, value in user_info.items():
+        # 訂單資料的 key 格式為 'YYYY-MM-DDlunch' 或 'YYYY-MM-DDdinner'
+        if key.endswith('lunch') or key.endswith('dinner'):
+            order_date = key[:-5]
+            meal_type = '午餐' if key.endswith('lunch') else '晚餐'
+            
+            if order_date not in history_orders:
+                history_orders[order_date] = {}
+            
+            history_orders[order_date][meal_type] = value
+            
+    return jsonify({'orders': history_orders}), 200
+
+
 @app.route('/member/order', methods=['POST'])
 def place_order():
     """會員送出訂單"""
@@ -157,27 +213,20 @@ def place_order():
     if not user_info or user_info['identity'] != 'member':
         return jsonify({'message': '非會員身分，無法訂餐'}), 403
 
-    # 計算訂單總價
     new_total_cost = sum(item.get('count', 0) * item.get('price', 0) for item in new_order.values())
     
-    # 檢查餘額 (根據您的要求，這裡邏輯已變更為檢查 newTotalCost < 0)
     if new_total_cost < 0:
         return jsonify({'message': '訂單總金額不能為負數'}), 400
     
-    # 檢查是否超過截止時間
     date_key = f"{selected_date}-{meal_type}"
     meal_info = meal_data.get(date_key, {})
+    
     if meal_info:
         deadline_str = meal_info.get('deadline')
         if deadline_str:
             try:
-                # 取得當前時間 (UTC+8)
                 now = datetime.utcnow() + timedelta(hours=8)
-                
-                # 將截止時間字串轉換為 time 物件
                 deadline_time = datetime.strptime(deadline_str, '%H:%M').time()
-                
-                # 結合日期和時間進行比較
                 order_date = datetime.strptime(selected_date, '%Y-%m-%d')
                 deadline_datetime = datetime.combine(order_date.date(), deadline_time)
                 
@@ -186,34 +235,17 @@ def place_order():
             except ValueError:
                 return jsonify({'message': '無效的截止時間格式'}), 400
 
-    # 處理舊訂單，並計算差額
     order_key = f"{selected_date}{meal_type}"
     old_order = user_info.get(order_key, {})
     old_total_cost = sum(item.get('count', 0) * item.get('price', 0) for item in old_order.values())
     
     payment_difference = new_total_cost - old_total_cost
-    
-    # 更新餘額
     user_info['remainingmoney'] -= payment_difference
-    
-    # 儲存新訂單到 memberdata
     user_info[order_key] = new_order
     
     save_data(member_data, MEMBER_DATA_FILE)
     
     return jsonify({'message': '訂單已送出', 'balance': user_info['remainingmoney']}), 200
-
-@app.route('/member/orders/<string:username>/<string:date>', methods=['GET'])
-def get_member_orders(username, date):
-    """會員取得個人某日的午餐和晚餐訂單"""
-    user_info = member_data.get(username, {})
-    lunch_order = user_info.get(f"{date}lunch", {})
-    dinner_order = user_info.get(f"{date}dinner", {})
-    
-    return jsonify({
-        'lunch': lunch_order,
-        'dinner': dinner_order
-    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

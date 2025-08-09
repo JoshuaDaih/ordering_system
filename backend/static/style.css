@@ -63,6 +63,7 @@ header {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 #logout-btn {
@@ -77,6 +78,20 @@ header {
 #logout-btn:hover {
     background-color: #c82333;
 }
+
+#show-history-orders-btn {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto; /* 靠右對齊 */
+}
+#show-history-orders-btn:hover {
+    background-color: #0056b3;
+}
+
 
 #balance-info {
     font-weight: bold;
@@ -117,7 +132,7 @@ header {
 .modal {
     display: none; /* 預設隱藏 */
     position: fixed;
-    z-index: 1;
+    z-index: 100;
     left: 0;
     top: 0;
     width: 100%;
@@ -128,13 +143,14 @@ header {
 
 .modal-content {
     background-color: #fefefe;
-    margin: 15% auto;
+    margin: 10% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
-    max-width: 500px;
+    max-width: 600px;
     border-radius: 8px;
     position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
 /* 關閉按鈕樣式 */
@@ -215,6 +231,10 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: pointer;
+}
+#balance-list li:hover {
+    background-color: #e9e9e9;
 }
 
 .recharge-controls {
@@ -263,4 +283,35 @@ header {
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+/* 新增按鈕樣式 */
+.order-summary-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.order-summary-btn:hover {
+    background-color: #5a6268;
+}
+
+/* 歷史訂單列表樣式 */
+#manager-history-modal-content,
+#member-history-modal-content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.history-order-date {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.history-order-item {
+    margin-left: 20px;
 }

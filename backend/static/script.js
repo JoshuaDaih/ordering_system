@@ -12,10 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const datePicker = document.getElementById('date-picker');
     const memberOrderArea = document.getElementById('member-order-area');
     
+    // Manager Modal 相關
     const managerModal = document.getElementById('manager-modal');
     const modalDate = document.getElementById('modal-date');
     const modalContentArea = document.getElementById('modal-content-area');
     const closeModalBtn = document.querySelector('.close-btn');
+
+    // Manager 歷史訂單 Modal 相關
+    const managerHistoryModal = document.getElementById('manager-history-modal');
+    const managerHistoryModalTitle = document.getElementById('manager-history-modal-title');
+    const managerHistoryModalContent = document.getElementById('manager-history-modal-content');
+    const managerHistoryCloseBtn = document.querySelector('.manager-history-close-btn');
+
+    // Member 歷史訂單 Modal 相關
+    const memberHistoryModal = document.getElementById('member-history-modal');
+    const memberHistoryModalContent = document.getElementById('member-history-modal-content');
+    const memberHistoryCloseBtn = document.querySelector('.member-history-close-btn');
+    const showHistoryOrdersBtn = document.getElementById('show-history-orders-btn');
 
     const memberBalanceListArea = document.getElementById('member-balance-list-area');
     
@@ -24,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const API_BASE_URL = 'http://127.0.0.1:5000';
 
-    // 格式化日期為 YYYY-MM-DD
     function getTodayFormatted() {
         const today = new Date();
         const year = today.getFullYear();
@@ -56,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     managerDashboard.style.display = 'block';
                     memberOrderArea.style.display = 'none';
                     balanceInfo.style.display = 'none';
+                    showHistoryOrdersBtn.style.display = 'none';
                     
                     datePicker.value = '';
                     selectedDate = null;
@@ -67,9 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     managerDashboard.style.display = 'none';
                     memberOrderArea.style.display = 'block';
                     balanceInfo.style.display = 'inline';
+                    showHistoryOrdersBtn.style.display = 'inline-block';
                     
                     updateBalanceInfo();
-                    selectedDate = getTodayFormatted(); // 確保會員登入後立即設定當日日期
+                    selectedDate = getTodayFormatted();
                     renderMemberOrderArea();
                 }
             } else {
@@ -91,8 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
         balanceInfo.style.display = 'none';
         datePicker.value = '';
         managerModal.style.display = 'none';
+        managerHistoryModal.style.display = 'none';
+        memberHistoryModal.style.display = 'none';
         memberBalanceListArea.innerHTML = '';
         memberOrderArea.innerHTML = '';
+        showHistoryOrdersBtn.style.display = 'none';
     });
 
     async function updateBalanceInfo() {
@@ -148,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let html = `
                 <div class="meal-section-header">
                     <h4>${mealType === 'lunch' ? '午餐' : '晚餐'} 選項</h4>
+                    <button class="order-summary-btn" data-meal-type="${mealType}">點餐數量</button>
                     <label>
                         截止時間：
                         <input type="time" class="deadline-input" data-meal-type="${mealType}" value="${deadline}">
@@ -190,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${renderMealList('dinner')}
         `;
         
+        // 截止時間變更事件
         document.querySelectorAll('.deadline-input').forEach(input => {
             input.addEventListener('change', async (e) => {
                 const mealType = e.target.dataset.mealType;
@@ -209,6 +228,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (error) {
                     console.error('更新截止時間失敗:', error);
                 }
+            });
+        });
+
+        // 點餐數量按鈕事件
+        document.querySelectorAll('.order-summary-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const mealType = e.target.dataset.meal-type;
+                const response = await fetch(`${API_BASE_URL}/manager/order_summary/${selectedDate}/${mealType}`);
+                const data = await response.json();
+                
+                let summaryHTML = `<h4>${mealType === 'lunch' ? '午餐' : '晚餐'} 訂餐數量 (${selectedDate})</h4>`;
+                const orderSummary = data.summary;
+
+                if (Object.keys(orderSummary).length > 0) {
+                    summaryHTML += '<ul>';
+                    for (const mealName in orderSummary) {
+                        summaryHTML += `<li>${mealName}: ${orderSummary[mealName]} 份</li>`;
+                    }
+                    summaryHTML += '</ul>';
+                } else {
+                    summaryHTML += '<p>目前沒有任何訂單。</p>';
+                }
+                
+                alert(summaryHTML);
             });
         });
 
@@ -290,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="recharge-controls">
                         <input type="number" class="recharge-amount-input" placeholder="金額" min="1">
                         <button class="recharge-btn">儲值</button>
+                        <button class="view-history-btn" data-member="${member}">查看歷史</button>
                     </div>
                 </li>
             `;
@@ -328,12 +372,113 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+        // Manager 查看歷史訂單按鈕事件
+        document.querySelectorAll('.view-history-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const memberName = e.target.dataset.member;
+                showManagerHistoryOrders(memberName);
+            });
+        });
     }
+
+    // 顯示 Manager 查看的歷史訂單
+    async function showManagerHistoryOrders(memberName) {
+        managerHistoryModalTitle.textContent = `${memberName} 的歷史訂單`;
+        managerHistoryModal.style.display = 'block';
+        managerHistoryModalContent.innerHTML = '載入中...';
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/member/orders/${memberName}`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                let historyHTML = '';
+                const orders = data.orders;
+                if (Object.keys(orders).length > 0) {
+                    for (const date in orders) {
+                        historyHTML += `<div class="history-order-date">日期：${date}</div>`;
+                        for (const mealType in orders[date]) {
+                            const mealOrder = orders[date][mealType];
+                            let totalCost = 0;
+                            historyHTML += `<div class="history-order-item">${mealType}：</div><ul>`;
+                            for (const mealName in mealOrder) {
+                                const mealDetails = mealOrder[mealName];
+                                const subtotal = mealDetails.count * mealDetails.price;
+                                totalCost += subtotal;
+                                historyHTML += `<li>${mealDetails.name} x ${mealDetails.count} 份 ($${mealDetails.price} / 份) - 小計: $${subtotal}</li>`;
+                            }
+                            historyHTML += `</ul>`;
+                            historyHTML += `<p><strong>${mealType}總計: $${totalCost}</strong></p>`;
+                        }
+                    }
+                } else {
+                    historyHTML = `<p>${memberName} 尚未有任何訂單。</p>`;
+                }
+                managerHistoryModalContent.innerHTML = historyHTML;
+            } else {
+                managerHistoryModalContent.innerHTML = `<p>無法載入訂單紀錄：${data.message}</p>`;
+            }
+        } catch (error) {
+            console.error('取得歷史訂單失敗:', error);
+            managerHistoryModalContent.innerHTML = `<p>取得歷史訂單失敗，請稍後再試。</p>`;
+        }
+    }
+
+    // Member 查看歷史訂單按鈕事件
+    showHistoryOrdersBtn.addEventListener('click', async () => {
+        memberHistoryModal.style.display = 'block';
+        memberHistoryModalContent.innerHTML = '載入中...';
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/member/orders/${currentRole}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                let historyHTML = '';
+                const orders = data.orders;
+                if (Object.keys(orders).length > 0) {
+                    for (const date in orders) {
+                        historyHTML += `<div class="history-order-date">日期：${date}</div>`;
+                        for (const mealType in orders[date]) {
+                            const mealOrder = orders[date][mealType];
+                            let totalCost = 0;
+                            historyHTML += `<div class="history-order-item">${mealType}：</div><ul>`;
+                            for (const mealName in mealOrder) {
+                                const mealDetails = mealOrder[mealName];
+                                const subtotal = mealDetails.count * mealDetails.price;
+                                totalCost += subtotal;
+                                historyHTML += `<li>${mealDetails.name} x ${mealDetails.count} 份 ($${mealDetails.price} / 份) - 小計: $${subtotal}</li>`;
+                            }
+                            historyHTML += `</ul>`;
+                            historyHTML += `<p><strong>${mealType}總計: $${totalCost}</strong></p>`;
+                        }
+                    }
+                } else {
+                    historyHTML = `<p>您尚未有任何訂單。</p>`;
+                }
+                memberHistoryModalContent.innerHTML = historyHTML;
+            } else {
+                memberHistoryModalContent.innerHTML = `<p>無法載入訂單紀錄：${data.message}</p>`;
+            }
+        } catch (error) {
+            console.error('取得歷史訂單失敗:', error);
+            memberHistoryModalContent.innerHTML = `<p>取得歷史訂單失敗，請稍後再試。</p>`;
+        }
+    });
 
     closeModalBtn.addEventListener('click', () => {
         managerModal.style.display = 'none';
         datePicker.value = '';
         selectedDate = null;
+    });
+
+    managerHistoryCloseBtn.addEventListener('click', () => {
+        managerHistoryModal.style.display = 'none';
+    });
+
+    memberHistoryCloseBtn.addEventListener('click', () => {
+        memberHistoryModal.style.display = 'none';
     });
     
     window.addEventListener('click', (e) => {
@@ -341,6 +486,12 @@ document.addEventListener('DOMContentLoaded', () => {
             managerModal.style.display = 'none';
             datePicker.value = '';
             selectedDate = null;
+        }
+        if (e.target == managerHistoryModal) {
+            managerHistoryModal.style.display = 'none';
+        }
+        if (e.target == memberHistoryModal) {
+            memberHistoryModal.style.display = 'none';
         }
     });
 
