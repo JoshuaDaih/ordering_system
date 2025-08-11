@@ -92,12 +92,11 @@ header {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-left: auto; /* 靠右對齊 */
+    margin-left: auto;
 }
 #show-history-orders-btn:hover {
     background-color: #0056b3;
 }
-
 
 #balance-info {
     font-weight: bold;
@@ -136,7 +135,7 @@ header {
 
 /* 懸浮視窗樣式 */
 .modal {
-    display: none; /* 預設隱藏 */
+    display: none;
     position: fixed;
     z-index: 100;
     left: 0;
@@ -219,7 +218,7 @@ header {
 }
 
 #meal-input-group input,
-#meal-input-group select { /* 新增 select 樣式 */
+#meal-input-group select {
     flex: 1;
     padding: 8px;
     border: 1px solid #ccc;
@@ -320,4 +319,10 @@ header {
 
 .history-order-item {
     margin-left: 20px;
+}
+
+.order-count {
+    cursor: pointer; /* 讓使用者知道可以點擊 */
+    color: #007bff;
+    text-decoration: underline;
 }

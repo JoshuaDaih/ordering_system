@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>訂餐網頁</title>
+    <title>訂餐系統</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div id="app">
         <div id="login-container">
-            <h1>登入</h1>
+            <h1>訂餐系統</h1>
             <div class="input-group">
                 <input type="text" id="username" placeholder="帳號">
             </div>
@@ -20,50 +20,76 @@
                 <button id="login-btn">登入</button>
             </div>
         </div>
-        
+
         <div id="main-container" style="display: none;">
             <header>
-                <span id="welcome-msg"></span>
-                <span id="balance-info"></span>
-                <button id="show-history-orders-btn" style="display: none;">歷史訂單</button>
-                <button id="logout-btn">登出</button>
+                <div id="welcome-info"></div>
+                <div id="balance-info"></div>
+                <div>
+                    <button id="show-history-orders-btn">歷史訂單</button>
+                    <button id="logout-btn">登出</button>
+                </div>
             </header>
-            
-            <div id="manager-dashboard" style="display: none;">
-                <div id="date-picker-container">
-                    <label for="date-picker">選擇日期：</label>
-                    <input type="date" id="date-picker">
-                </div>
-                <div id="member-balance-list-area"></div>
-            </div>
-            
-            <div id="member-order-area" style="display: none;"></div>
-            
-            <div id="manager-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn">&times;</span>
-                    <h2 id="modal-date"></h2>
-                    <div id="modal-content-area"></div>
+
+            <div id="member-area" style="display: none;">
+                <h2>會員訂餐區</h2>
+                <div id="member-order-area">
+                    <p>本日餐點供應：</p>
+                    <ul id="member-meals-list"></ul>
                 </div>
             </div>
 
-            <div id="manager-history-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn manager-history-close-btn">&times;</span>
-                    <h2 id="manager-history-modal-title"></h2>
-                    <div id="manager-history-modal-content"></div>
-                </div>
-            </div>
+            <div id="manager-area" style="display: none;">
+                <h2>管理者介面</h2>
+                <div id="manager-dashboard">
+                    <h3>當日餐點與餘額管理</h3>
+                    <div id="date-picker-container">
+                        <label for="order-date">選擇日期:</label>
+                        <input type="date" id="order-date">
+                    </div>
+                    
+                    <h4>當日餐點設定</h4>
+                    <div id="meal-input-group">
+                        <input type="text" id="restaurant-name-input" placeholder="餐廳名稱">
+                        <input type="text" id="meal-name-input" placeholder="餐點名稱">
+                        <input type="number" id="meal-price-input" placeholder="價格" min="0">
+                        <button id="add-meal-btn">新增</button>
+                    </div>
+                    <ul id="current-meals-list"></ul>
 
-            <div id="member-history-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn member-history-close-btn">&times;</span>
-                    <h2>我的歷史訂單</h2>
-                    <div id="member-history-modal-content"></div>
+                    <h4>會員餘額與充值</h4>
+                    <ul id="balance-list"></ul>
                 </div>
             </div>
         </div>
+
+        <div id="history-modal" class="modal">
+            <div class="modal-content">
+                <span id="history-close-btn" class="close-btn">&times;</span>
+                <h3>歷史訂單</h3>
+                <div id="manager-history-modal-content"></div>
+                <div id="member-history-modal-content"></div>
+            </div>
+        </div>
+
+        <div id="order-summary-modal" class="modal">
+            <div class="modal-content">
+                <span id="order-summary-close-btn" class="close-btn">&times;</span>
+                <h3>訂單總結</h3>
+                <div id="order-summary-modal-content"></div>
+            </div>
+        </div>
+        
+        <div id="member-list-modal" class="modal">
+            <div class="modal-content">
+                <span id="member-list-close-btn" class="close-btn">&times;</span>
+                <h3>點餐成員列表</h3>
+                <div id="member-list-modal-content"></div>
+            </div>
+        </div>
+        
     </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
