@@ -39,16 +39,11 @@ const allOrdersListArea = document.getElementById('all-orders-list-area');
 const allOrdersList = document.getElementById('all-orders-list');
 const clearOrdersBtn = document.getElementById('clear-orders-btn');
 const showAllHistoryOrdersBtn = document.getElementById('show-all-history-orders-btn');
-const showOrderSummaryBtn = document.getElementById('show-order-summary-btn'); // 新增
 
 // 懸浮視窗
 const historyModal = document.getElementById('history-modal');
 const historyModalContent = document.getElementById('history-modal-content');
 const historyCloseBtn = document.getElementById('history-close-btn');
-
-const orderSummaryModal = document.getElementById('order-summary-modal'); // 新增
-const orderSummaryContent = document.getElementById('order-summary-content'); // 新增
-const orderSummaryCloseBtn = document.getElementById('order-summary-close-btn'); // 新增
 
 let currentUser = null;
 let currentIdentity = null;
@@ -356,63 +351,14 @@ showAllHistoryOrdersBtn.addEventListener('click', async () => {
     historyModal.style.display = 'block';
 });
 
-// 新增：處理訂單總結功能
-showOrderSummaryBtn.addEventListener('click', async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/manager/order-summary`);
-        const summaryData = await response.json();
-
-        orderSummaryContent.innerHTML = '';
-        if (Object.keys(summaryData).length === 0) {
-            orderSummaryContent.innerHTML = '<p>今日尚無訂單。</p>';
-        } else {
-            for (const meal in summaryData) {
-                const mealDiv = document.createElement('div');
-                mealDiv.classList.add('meal-summary-section');
-                mealDiv.innerHTML = `<h4>${meal}</h4>`;
-
-                for (const item in summaryData[meal]) {
-                    const itemData = summaryData[meal][item];
-                    const itemDiv = document.createElement('div');
-                    itemDiv.classList.add('item-summary-details');
-
-                    const totalQuantitySpan = document.createElement('span');
-                    totalQuantitySpan.textContent = `${item}: 共 ${itemData.total_quantity} 份`;
-                    itemDiv.appendChild(totalQuantitySpan);
-
-                    const membersList = document.createElement('ul');
-                    itemData.members.forEach(member => {
-                        const li = document.createElement('li');
-                        li.textContent = member;
-                        membersList.appendChild(li);
-                    });
-                    itemDiv.appendChild(membersList);
-                    
-                    mealDiv.appendChild(itemDiv);
-                }
-                orderSummaryContent.appendChild(mealDiv);
-            }
-        }
-        orderSummaryModal.style.display = 'block';
-    } catch (error) {
-        console.error('獲取訂單總結失敗:', error);
-        alert('無法獲取訂單總結，請檢查伺服器連線。');
-    }
-});
-
 
 // --- 懸浮視窗的關閉事件 ---
-[historyCloseBtn, orderSummaryCloseBtn].forEach(btn => {
-    btn.addEventListener('click', () => {
-        historyModal.style.display = 'none';
-        orderSummaryModal.style.display = 'none';
-    });
+historyCloseBtn.addEventListener('click', () => {
+    historyModal.style.display = 'none';
 });
+
 window.addEventListener('click', (event) => {
     if (event.target === historyModal) {
         historyModal.style.display = 'none';
-    }
-    if (event.target === orderSummaryModal) {
-        orderSummaryModal.style.display = 'none';
     }
 });

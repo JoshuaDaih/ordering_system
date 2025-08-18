@@ -346,30 +346,3 @@ header {
 .manager-controls #show-all-balances-btn {
     background-color: #2196F3;
 }
-.manager-controls #show-order-summary-btn {
-    background-color: #ff9800;
-}
-
-.meal-summary-section {
-    border-bottom: 2px solid #ccc;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-.meal-summary-section h4 {
-    margin: 0 0 10px 0;
-}
-.item-summary-details {
-    padding: 5px 0;
-}
-.item-summary-details span {
-    font-weight: bold;
-}
-.item-summary-details ul {
-    list-style-type: none;
-    padding-left: 20px;
-    margin: 5px 0;
-}
-.item-summary-details li {
-    font-size: 0.9em;
-    color: #555;
-}

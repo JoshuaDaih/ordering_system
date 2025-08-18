@@ -55,7 +55,6 @@
                 <button id="show-all-history-orders-btn">查看所有歷史訂單</button>
                 <button id="clear-orders-btn">清空當日訂單</button>
                 <button id="show-all-balances-btn">查看所有會員餘額</button>
-                <button id="show-order-summary-btn">查看訂單總結</button>
             </div>
 
             <div id="manager-info-area">
@@ -79,14 +78,6 @@
         </div>
     </div>
 
-    <div id="order-summary-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="order-summary-close-btn">&times;</span>
-            <h3>當日訂單總結</h3>
-            <div id="order-summary-content"></div>
-        </div>
-    </div>
-    
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -146,27 +146,5 @@ def get_member_history(username):
 def get_all_history():
     return jsonify(order_history)
 
-@app.route('/manager/order-summary')
-def get_order_summary():
-    """新增路由：查看每餐各項餐點的訂購數量及成員列表"""
-    summary = {}
-    
-    for username, orders in order_data.items():
-        for meal_id, order_info in orders.items():
-            meal_name = order_info['meal_name']
-            item_name = order_info['item_name']
-            quantity = order_info['quantity']
-
-            if meal_name not in summary:
-                summary[meal_name] = {}
-            
-            if item_name not in summary[meal_name]:
-                summary[meal_name][item_name] = {'total_quantity': 0, 'members': []}
-            
-            summary[meal_name][item_name]['total_quantity'] += quantity
-            summary[meal_name][item_name]['members'].append(username)
-
-    return jsonify(summary)
-
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
