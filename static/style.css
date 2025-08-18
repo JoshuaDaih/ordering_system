@@ -92,11 +92,12 @@ header {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-left: auto;
+    margin-left: auto; /* 靠右對齊 */
 }
 #show-history-orders-btn:hover {
     background-color: #0056b3;
 }
+
 
 #balance-info {
     font-weight: bold;
@@ -135,7 +136,7 @@ header {
 
 /* 懸浮視窗樣式 */
 .modal {
-    display: none;
+    display: none; /* 預設隱藏 */
     position: fixed;
     z-index: 100;
     left: 0;
@@ -218,7 +219,7 @@ header {
 }
 
 #meal-input-group input,
-#meal-input-group select {
+#meal-input-group select { /* 新增 select 樣式 */
     flex: 1;
     padding: 8px;
     border: 1px solid #ccc;
@@ -320,9 +321,55 @@ header {
 .history-order-item {
     margin-left: 20px;
 }
+.manager-controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.manager-controls button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    background-color: #4CAF50;
+    color: white;
+}
+.manager-controls button:hover {
+    opacity: 0.9;
+}
+.manager-controls #clear-orders-btn {
+    background-color: #f44336;
+}
+.manager-controls #show-all-balances-btn {
+    background-color: #2196F3;
+}
+.manager-controls #show-order-summary-btn {
+    background-color: #ff9800;
+}
 
-.order-count {
-    cursor: pointer; /* 讓使用者知道可以點擊 */
-    color: #007bff;
-    text-decoration: underline;
+.meal-summary-section {
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+.meal-summary-section h4 {
+    margin: 0 0 10px 0;
+}
+.item-summary-details {
+    padding: 5px 0;
+}
+.item-summary-details span {
+    font-weight: bold;
+}
+.item-summary-details ul {
+    list-style-type: none;
+    padding-left: 20px;
+    margin: 5px 0;
+}
+.item-summary-details li {
+    font-size: 0.9em;
+    color: #555;
 }

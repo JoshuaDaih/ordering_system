@@ -7,89 +7,86 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div id="app">
-        <div id="login-container">
-            <h1>訂餐系統</h1>
-            <div class="input-group">
-                <input type="text" id="username" placeholder="帳號">
-            </div>
-            <div class="input-group">
-                <input type="password" id="password" placeholder="密碼">
-            </div>
-            <div class="button-group">
-                <button id="login-btn">登入</button>
-            </div>
+
+    <div id="login-container">
+        <h1>訂餐系統登入</h1>
+        <div class="input-group">
+            <input type="text" id="username-input" placeholder="請輸入帳號">
         </div>
-
-        <div id="main-container" style="display: none;">
-            <header>
-                <div id="welcome-info"></div>
-                <div id="balance-info"></div>
-                <div>
-                    <button id="show-history-orders-btn">歷史訂單</button>
-                    <button id="logout-btn">登出</button>
-                </div>
-            </header>
-
-            <div id="member-area" style="display: none;">
-                <h2>會員訂餐區</h2>
-                <div id="member-order-area">
-                    <p>本日餐點供應：</p>
-                    <ul id="member-meals-list"></ul>
-                </div>
-            </div>
-
-            <div id="manager-area" style="display: none;">
-                <h2>管理者介面</h2>
-                <div id="manager-dashboard">
-                    <h3>當日餐點與餘額管理</h3>
-                    <div id="date-picker-container">
-                        <label for="order-date">選擇日期:</label>
-                        <input type="date" id="order-date">
-                    </div>
-                    
-                    <h4>當日餐點設定</h4>
-                    <div id="meal-input-group">
-                        <input type="text" id="restaurant-name-input" placeholder="餐廳名稱">
-                        <input type="text" id="meal-name-input" placeholder="餐點名稱">
-                        <input type="number" id="meal-price-input" placeholder="價格" min="0">
-                        <button id="add-meal-btn">新增</button>
-                    </div>
-                    <ul id="current-meals-list"></ul>
-
-                    <h4>會員餘額與充值</h4>
-                    <ul id="balance-list"></ul>
-                </div>
-            </div>
+        <div class="input-group">
+            <input type="password" id="password-input" placeholder="請輸入密碼">
         </div>
-
-        <div id="history-modal" class="modal">
-            <div class="modal-content">
-                <span id="history-close-btn" class="close-btn">&times;</span>
-                <h3>歷史訂單</h3>
-                <div id="manager-history-modal-content"></div>
-                <div id="member-history-modal-content"></div>
-            </div>
+        <div class="button-group">
+            <button id="login-btn">登入</button>
         </div>
-
-        <div id="order-summary-modal" class="modal">
-            <div class="modal-content">
-                <span id="order-summary-close-btn" class="close-btn">&times;</span>
-                <h3>訂單總結</h3>
-                <div id="order-summary-modal-content"></div>
-            </div>
-        </div>
-        
-        <div id="member-list-modal" class="modal">
-            <div class="modal-content">
-                <span id="member-list-close-btn" class="close-btn">&times;</span>
-                <h3>點餐成員列表</h3>
-                <div id="member-list-modal-content"></div>
-            </div>
-        </div>
-        
     </div>
 
+    <div id="app" style="display:none;">
+        <header>
+            <span id="current-user"></span>
+            <button id="logout-btn">登出</button>
+        </header>
+        
+        <hr>
+        
+        <div id="member-dashboard" style="display:none;">
+            <h2>會員中心</h2>
+            <div id="balance-info-area">
+                <p>剩餘餘額: <span id="balance-info"></span></p>
+                <button id="show-history-orders-btn">歷史訂單</button>
+            </div>
+
+            <div id="member-order-area">
+                <h3>訂餐</h3>
+                <p>訂單截止時間: <span id="deadline">10:00</span></p>
+                <div id="current-meals-list"></div>
+                <button id="save-order-btn" class="save-order-btn">送出訂單</button>
+            </div>
+        </div>
+
+        <div id="manager-dashboard" style="display:none;">
+            <h2>管理員中心</h2>
+            <div id="date-picker-container">
+                <input type="date" id="date-picker">
+            </div>
+
+            <div class="manager-controls">
+                <button id="show-all-orders-btn">查看當日所有訂單</button>
+                <button id="show-all-history-orders-btn">查看所有歷史訂單</button>
+                <button id="clear-orders-btn">清空當日訂單</button>
+                <button id="show-all-balances-btn">查看所有會員餘額</button>
+                <button id="show-order-summary-btn">查看訂單總結</button>
+            </div>
+
+            <div id="manager-info-area">
+                <div id="all-balances-list-area" style="display:none;">
+                    <h3>所有會員餘額</h3>
+                    <ul id="balance-list"></ul>
+                </div>
+
+                <div id="all-orders-list-area" style="display:none;">
+                    <h3>當日訂單</h3>
+                    <ul id="all-orders-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="history-close-btn">&times;</span>
+            <div id="history-modal-content"></div>
+        </div>
+    </div>
+
+    <div id="order-summary-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="order-summary-close-btn">&times;</span>
+            <h3>當日訂單總結</h3>
+            <div id="order-summary-content"></div>
+        </div>
+    </div>
+    
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

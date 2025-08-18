@@ -1,136 +1,165 @@
+// --- 網站配置與資料模型 ---
 const API_BASE_URL = '';
-const app = document.getElementById('app');
+const memberMeals = {
+    '早餐': [
+        { item_name: '飯糰', price: 30 },
+        { item_name: '三明治', price: 40 },
+        { item_name: '蛋餅', price: 35 },
+    ],
+    '午餐': [
+        { item_name: '雞腿飯', price: 100 },
+        { item_name: '排骨飯', price: 90 },
+        { item_name: '魚排飯', price: 110 },
+    ],
+};
+// --- 網站配置與資料模型 ---
 
+// --- 取得 DOM 元素 ---
 const loginContainer = document.getElementById('login-container');
-const mainContainer = document.getElementById('main-container');
-
+const appContainer = document.getElementById('app');
+const usernameInput = document.getElementById('username-input');
+const passwordInput = document.getElementById('password-input');
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 
-const memberArea = document.getElementById('member-area');
-const managerArea = document.getElementById('manager-area');
-
-const welcomeInfo = document.getElementById('welcome-info');
+// 會員
+const memberDashboard = document.getElementById('member-dashboard');
 const balanceInfo = document.getElementById('balance-info');
-
-const orderDateInput = document.getElementById('order-date');
-
-const restaurantNameInput = document.getElementById('restaurant-name-input');
-const mealNameInput = document.getElementById('meal-name-input');
-const mealPriceInput = document.getElementById('meal-price-input');
-const addMealBtn = document.getElementById('add-meal-btn');
 const currentMealsList = document.getElementById('current-meals-list');
-
-const balanceList = document.getElementById('balance-list');
-
-const historyModal = document.getElementById('history-modal');
-const historyCloseBtn = document.getElementById('history-close-btn');
+const saveOrderBtn = document.getElementById('save-order-btn');
 const showHistoryOrdersBtn = document.getElementById('show-history-orders-btn');
 
-const memberMealsList = document.getElementById('member-meals-list');
+// 管理員
+const managerDashboard = document.getElementById('manager-dashboard');
+const showAllBalancesBtn = document.getElementById('show-all-balances-btn');
+const allBalancesListArea = document.getElementById('all-balances-list-area');
+const balanceList = document.getElementById('balance-list');
+const showAllOrdersBtn = document.getElementById('show-all-orders-btn');
+const allOrdersListArea = document.getElementById('all-orders-list-area');
+const allOrdersList = document.getElementById('all-orders-list');
+const clearOrdersBtn = document.getElementById('clear-orders-btn');
+const showAllHistoryOrdersBtn = document.getElementById('show-all-history-orders-btn');
+const showOrderSummaryBtn = document.getElementById('show-order-summary-btn'); // 新增
 
-const orderSummaryModal = document.getElementById('order-summary-modal');
-const orderSummaryModalContent = document.getElementById('order-summary-modal-content');
-const orderSummaryCloseBtn = document.getElementById('order-summary-close-btn');
+// 懸浮視窗
+const historyModal = document.getElementById('history-modal');
+const historyModalContent = document.getElementById('history-modal-content');
+const historyCloseBtn = document.getElementById('history-close-btn');
 
-const memberListModal = document.getElementById('member-list-modal');
-const memberListModalContent = document.getElementById('member-list-modal-content');
-const memberListCloseBtn = document.getElementById('member-list-close-btn');
+const orderSummaryModal = document.getElementById('order-summary-modal'); // 新增
+const orderSummaryContent = document.getElementById('order-summary-content'); // 新增
+const orderSummaryCloseBtn = document.getElementById('order-summary-close-btn'); // 新增
 
-let currentLoggedInUser = null;
+let currentUser = null;
+let currentIdentity = null;
+let currentOrders = {};
 
-// Helper function to render meals list
-const renderManagerMeals = (meals) => {
+// --- 輔助函式 ---
+function showPage(pageId) {
+    loginContainer.style.display = 'none';
+    appContainer.style.display = 'block';
+    memberDashboard.style.display = 'none';
+    managerDashboard.style.display = 'none';
+    document.getElementById('current-user').textContent = `你好，${currentUser}`;
+    document.getElementById(pageId).style.display = 'block';
+}
+
+function renderMemberMeals(userOrders) {
+    currentOrders = userOrders;
     currentMealsList.innerHTML = '';
-    const mealsByRestaurant = {};
-    meals.forEach(meal => {
-        if (!mealsByRestaurant[meal.restaurant]) {
-            mealsByRestaurant[meal.restaurant] = [];
-        }
-        mealsByRestaurant[meal.restaurant].push(meal);
-    });
-
-    for (const restaurant in mealsByRestaurant) {
-        const restaurantHeader = document.createElement('h5');
-        restaurantHeader.textContent = `餐廳: ${restaurant}`;
-        currentMealsList.appendChild(restaurantHeader);
-
-        mealsByRestaurant[restaurant].forEach(meal => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${meal.name} - $${meal.price}</span>
-                <span>
-                    已點人數: 
-                    <span class="order-count" data-meal-name="${meal.name}" data-restaurant-name="${meal.restaurant}">${meal.count}</span>
-                    <button class="delete-meal-btn" data-meal-name="${meal.name}" data-restaurant-name="${meal.restaurant}">刪除</button>
-                </span>
+    
+    for (const meal in memberMeals) {
+        const mealId = meal.replace(/\s/g, '');
+        const mealDiv = document.createElement('div');
+        mealDiv.classList.add('meal-section');
+        mealDiv.innerHTML = `<h4>${meal}</h4>`;
+        
+        memberMeals[meal].forEach(item => {
+            const itemId = `${mealId}-${item.item_name}`;
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('order-item');
+            
+            const quantity = userOrders[itemId] ? userOrders[itemId].quantity : 0;
+            
+            itemDiv.innerHTML = `
+                <span>${item.item_name} (NT$ ${item.price})</span>
+                <div class="order-controls">
+                    <button class="decrease-btn" data-id="${itemId}" data-price="${item.price}" data-name="${item.item_name}" data-meal="${meal}">-</button>
+                    <input type="text" class="quantity" value="${quantity}" readonly>
+                    <button class="increase-btn" data-id="${itemId}" data-price="${item.price}" data-name="${item.item_name}" data-meal="${meal}">+</button>
+                </div>
             `;
-            currentMealsList.appendChild(li);
+            mealDiv.appendChild(itemDiv);
         });
+        currentMealsList.appendChild(mealDiv);
     }
+}
 
-    // 新增點擊事件監聽器
-    currentMealsList.querySelectorAll('.order-count').forEach(span => {
-        span.addEventListener('click', async (e) => {
-            const mealName = e.target.dataset.mealName;
-            const restaurantName = e.target.dataset.restaurantName;
-            const date = orderDateInput.value;
+function handleQuantityControls() {
+    currentMealsList.addEventListener('click', (e) => {
+        const targetBtn = e.target.closest('.decrease-btn, .increase-btn');
+        if (!targetBtn) return;
+        
+        const isIncrease = targetBtn.classList.contains('increase-btn');
+        const itemId = targetBtn.dataset.id;
+        const itemName = targetBtn.dataset.name;
+        const itemPrice = parseInt(targetBtn.dataset.price);
+        const mealName = targetBtn.dataset.meal;
+        
+        let quantity = currentOrders[itemId] ? currentOrders[itemId].quantity : 0;
+        
+        if (isIncrease) {
+            quantity++;
+        } else if (quantity > 0) {
+            quantity--;
+        }
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/order/summary?date=${date}`);
-                if (!response.ok) {
-                    throw new Error('無法取得訂單總結');
-                }
-                const summary = await response.json();
+        if (quantity > 0) {
+            currentOrders[itemId] = {
+                quantity: quantity,
+                item_name: itemName,
+                price: itemPrice,
+                meal_name: mealName
+            };
+        } else {
+            delete currentOrders[itemId];
+        }
 
-                const membersForMeal = summary.details
-                    .filter(item => item.restaurant === restaurantName && item.meal === mealName)
-                    .map(item => item.username);
-                
-                const totalCount = membersForMeal.length;
-
-                renderMemberList(restaurantName, mealName, membersForMeal, totalCount);
-
-            } catch (error) {
-                alert('無法取得成員列表: ' + error.message);
-            }
-        });
+        const quantityInput = targetBtn.parentElement.querySelector('.quantity');
+        if (quantityInput) {
+            quantityInput.value = quantity;
+        }
     });
-};
+}
+handleQuantityControls();
 
-const renderMemberList = (restaurant, meal, members, totalCount) => {
-    memberListModalContent.innerHTML = `
-        <h4>${restaurant} - ${meal}</h4>
-        <p>總計點餐人數: ${totalCount}</p>
-        <ul>
-            ${members.map(member => `<li>${member}</li>`).join('')}
-        </ul>
-    `;
-    memberListModal.style.display = 'block';
-};
 
-// ... (其他函式保持不變)
-
-// 登入事件監聽器
+// --- 登入/登出 ---
 loginBtn.addEventListener('click', async () => {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
+    const username = usernameInput.value;
+    const password = passwordInput.value;
+    
     try {
         const response = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-
         const data = await response.json();
 
         if (response.ok) {
-            alert('登入成功！');
-            currentLoggedInUser = username;
-            localStorage.setItem('loggedInUser', username);
-            localStorage.setItem('userIdentity', data.identity);
-            checkLoginStatus();
+            currentUser = username;
+            currentIdentity = data.identity;
+            
+            if (currentIdentity === 'member') {
+                showPage('member-dashboard');
+                const memberInfoRes = await fetch(`${API_BASE_URL}/member/info/${currentUser}`);
+                const memberInfoData = await memberInfoRes.json();
+                balanceInfo.textContent = memberInfoData.remainingmoney;
+                renderMemberMeals(memberInfoData.current_orders);
+            } else if (currentIdentity === 'manager') {
+                showPage('manager-dashboard');
+            }
         } else {
             alert(data.message);
         }
@@ -140,67 +169,250 @@ loginBtn.addEventListener('click', async () => {
     }
 });
 
-// ... (其他事件監聽器和函式)
-
-// Load data and set up event listeners on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const today = new Date();
-    const formattedDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-    orderDateInput.value = formattedDate;
-
-    // ... (其他初始化邏輯)
+logoutBtn.addEventListener('click', () => {
+    currentUser = null;
+    currentIdentity = null;
+    currentOrders = {};
+    loginContainer.style.display = 'flex';
+    appContainer.style.display = 'none';
+    usernameInput.value = '';
+    passwordInput.value = '';
+    allOrdersList.innerHTML = '';
+    allBalancesListArea.style.display = 'none';
+    allOrdersListArea.style.display = 'none';
 });
 
-// 註冊新的事件監聽器
-addMealBtn.addEventListener('click', async () => {
-    const restaurantName = restaurantNameInput.value;
-    const mealName = mealNameInput.value;
-    const mealPrice = parseFloat(mealPriceInput.value);
-    const date = orderDateInput.value;
-
-    if (!restaurantName || !mealName || isNaN(mealPrice) || mealPrice <= 0) {
-        alert('請輸入有效的餐廳名稱、餐點名稱和價格！');
-        return;
-    }
-
+// --- 會員功能 ---
+saveOrderBtn.addEventListener('click', async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/manager/add_meal`, {
+        const response = await fetch(`${API_BASE_URL}/member/order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ date, restaurant: restaurantName, name: mealName, price: mealPrice })
+            body: JSON.stringify({ username: currentUser, orders: currentOrders })
         });
         const data = await response.json();
+
         if (response.ok) {
-            alert('餐點新增成功！');
-            restaurantNameInput.value = '';
-            mealNameInput.value = '';
-            mealPriceInput.value = '';
-            // Update UI
-            fetchMealsByDate(orderDateInput.value);
+            alert('訂單送出成功');
+            // 更新餘額
+            const memberInfoRes = await fetch(`${API_BASE_URL}/member/info/${currentUser}`);
+            const memberInfoData = await memberInfoRes.json();
+            balanceInfo.textContent = memberInfoData.remainingmoney;
         } else {
             alert(data.message);
         }
     } catch (error) {
-        console.error('新增餐點失敗:', error);
+        console.error('送出訂單失敗:', error);
     }
 });
 
-// 函式：取得特定日期的餐點資訊
-async function fetchMealsByDate(date) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/meals?date=${date}`);
-        const data = await response.json();
-        if (response.ok) {
-            const identity = localStorage.getItem('userIdentity');
-            if (identity === 'manager') {
-                renderManagerMeals(data.meals);
-            } else if (identity === 'member') {
-                renderMemberMeals(data.meals);
+showHistoryOrdersBtn.addEventListener('click', async () => {
+    const response = await fetch(`${API_BASE_URL}/member/history/${currentUser}`);
+    const historyData = await response.json();
+    
+    historyModalContent.innerHTML = '';
+    if (historyData.length === 0) {
+        historyModalContent.innerHTML = '<p>尚無歷史訂單。</p>';
+    } else {
+        historyData.forEach(entry => {
+            const dateDiv = document.createElement('div');
+            dateDiv.classList.add('history-order-date');
+            dateDiv.textContent = `日期: ${entry.date}`;
+            historyModalContent.appendChild(dateDiv);
+            
+            for (const orderId in entry.orders) {
+                const order = entry.orders[orderId];
+                const orderDiv = document.createElement('div');
+                orderDiv.classList.add('history-order-item');
+                orderDiv.textContent = `${order.meal_name} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
+                historyModalContent.appendChild(orderDiv);
             }
-        } else {
-            alert(data.message);
-        }
-    } catch (error) {
-        console.error('獲取餐點列表失敗:', error);
+        });
     }
-}
+    historyModal.style.display = 'block';
+});
+
+
+// --- 管理員功能 ---
+showAllBalancesBtn.addEventListener('click', async () => {
+    allOrdersListArea.style.display = 'none';
+    allBalancesListArea.style.display = 'block';
+    
+    const response = await fetch(`${API_BASE_URL}/manager/all_balances`);
+    const balances = await response.json();
+    
+    balanceList.innerHTML = '';
+    for (const user in balances) {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span>${user}: NT$ ${balances[user]}</span>
+            <div class="recharge-controls">
+                <input type="number" placeholder="金額" class="recharge-input" data-user="${user}">
+                <button class="recharge-btn">儲值</button>
+            </div>
+        `;
+        balanceList.appendChild(li);
+    }
+    
+    balanceList.addEventListener('click', async (e) => {
+        if (!e.target.classList.contains('recharge-btn')) return;
+        
+        const rechargeInput = e.target.closest('li').querySelector('.recharge-input');
+        const username = rechargeInput.dataset.user;
+        const amount = parseInt(rechargeInput.value);
+        
+        if (isNaN(amount) || amount <= 0) {
+            alert('請輸入有效金額');
+            return;
+        }
+        
+        const rechargeRes = await fetch(`${API_BASE_URL}/manager/recharge`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, amount })
+        });
+        const rechargeData = await rechargeRes.json();
+        alert(rechargeData.message);
+        
+        if (rechargeRes.ok) {
+            showAllBalancesBtn.click(); // 重新整理餘額列表
+        }
+    });
+});
+
+showAllOrdersBtn.addEventListener('click', async () => {
+    allBalancesListArea.style.display = 'none';
+    allOrdersListArea.style.display = 'block';
+    
+    const response = await fetch(`${API_BASE_URL}/manager/all_orders`);
+    const orders = await response.json();
+    
+    allOrdersList.innerHTML = '';
+    if (Object.keys(orders).length === 0) {
+        allOrdersList.innerHTML = '<li>目前沒有訂單。</li>';
+        return;
+    }
+    
+    for (const username in orders) {
+        const userOrders = orders[username];
+        const userHeader = document.createElement('h4');
+        userHeader.textContent = `會員: ${username}`;
+        allOrdersList.appendChild(userHeader);
+        
+        const orderList = document.createElement('ul');
+        for (const orderId in userOrders) {
+            const order = userOrders[orderId];
+            const li = document.createElement('li');
+            li.textContent = `${order.meal_name} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
+            orderList.appendChild(li);
+        }
+        allOrdersList.appendChild(orderList);
+    }
+});
+
+clearOrdersBtn.addEventListener('click', async () => {
+    if (confirm('確定要清空所有訂單嗎？此操作無法復原。')) {
+        const response = await fetch(`${API_BASE_URL}/manager/clear_orders`, {
+            method: 'POST'
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (response.ok) {
+            showAllOrdersBtn.click(); // 重新整理訂單列表
+        }
+    }
+});
+
+showAllHistoryOrdersBtn.addEventListener('click', async () => {
+    const response = await fetch(`${API_BASE_URL}/manager/history`);
+    const historyData = await response.json();
+    
+    historyModalContent.innerHTML = '';
+    if (Object.keys(historyData).length === 0) {
+        historyModalContent.innerHTML = '<p>尚無歷史訂單。</p>';
+    } else {
+        for(const username in historyData) {
+            const userHistory = historyData[username];
+            const userHeader = document.createElement('h4');
+            userHeader.textContent = `會員: ${username}`;
+            historyModalContent.appendChild(userHeader);
+
+            userHistory.forEach(entry => {
+                const dateDiv = document.createElement('div');
+                dateDiv.classList.add('history-order-date');
+                dateDiv.textContent = `日期: ${entry.date}`;
+                historyModalContent.appendChild(dateDiv);
+                
+                for (const orderId in entry.orders) {
+                    const order = entry.orders[orderId];
+                    const orderDiv = document.createElement('div');
+                    orderDiv.classList.add('history-order-item');
+                    orderDiv.textContent = `${order.meal_name} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
+                    historyModalContent.appendChild(orderDiv);
+                }
+            });
+        }
+    }
+    historyModal.style.display = 'block';
+});
+
+// 新增：處理訂單總結功能
+showOrderSummaryBtn.addEventListener('click', async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/manager/order-summary`);
+        const summaryData = await response.json();
+
+        orderSummaryContent.innerHTML = '';
+        if (Object.keys(summaryData).length === 0) {
+            orderSummaryContent.innerHTML = '<p>今日尚無訂單。</p>';
+        } else {
+            for (const meal in summaryData) {
+                const mealDiv = document.createElement('div');
+                mealDiv.classList.add('meal-summary-section');
+                mealDiv.innerHTML = `<h4>${meal}</h4>`;
+
+                for (const item in summaryData[meal]) {
+                    const itemData = summaryData[meal][item];
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('item-summary-details');
+
+                    const totalQuantitySpan = document.createElement('span');
+                    totalQuantitySpan.textContent = `${item}: 共 ${itemData.total_quantity} 份`;
+                    itemDiv.appendChild(totalQuantitySpan);
+
+                    const membersList = document.createElement('ul');
+                    itemData.members.forEach(member => {
+                        const li = document.createElement('li');
+                        li.textContent = member;
+                        membersList.appendChild(li);
+                    });
+                    itemDiv.appendChild(membersList);
+                    
+                    mealDiv.appendChild(itemDiv);
+                }
+                orderSummaryContent.appendChild(mealDiv);
+            }
+        }
+        orderSummaryModal.style.display = 'block';
+    } catch (error) {
+        console.error('獲取訂單總結失敗:', error);
+        alert('無法獲取訂單總結，請檢查伺服器連線。');
+    }
+});
+
+
+// --- 懸浮視窗的關閉事件 ---
+[historyCloseBtn, orderSummaryCloseBtn].forEach(btn => {
+    btn.addEventListener('click', () => {
+        historyModal.style.display = 'none';
+        orderSummaryModal.style.display = 'none';
+    });
+});
+window.addEventListener('click', (event) => {
+    if (event.target === historyModal) {
+        historyModal.style.display = 'none';
+    }
+    if (event.target === orderSummaryModal) {
+        orderSummaryModal.style.display = 'none';
+    }
+});
