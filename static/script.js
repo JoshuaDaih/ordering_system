@@ -1,17 +1,7 @@
 // --- 網站配置與資料模型 ---
 const API_BASE_URL = '';
-const memberMeals = {
-    '早餐': [
-        { item_name: '飯糰', price: 30 },
-        { item_name: '三明治', price: 40 },
-        { item_name: '蛋餅', price: 35 },
-    ],
-    '午餐': [
-        { item_name: '雞腿飯', price: 100 },
-        { item_name: '排骨飯', price: 90 },
-        { item_name: '魚排飯', price: 110 },
-    ],
-};
+let memberMeals = {};
+let orderDeadlines = {};
 // --- 網站配置與資料模型 ---
 
 // --- 取得 DOM 元素 ---
@@ -37,8 +27,12 @@ const balanceList = document.getElementById('balance-list');
 const showAllOrdersBtn = document.getElementById('show-all-orders-btn');
 const allOrdersListArea = document.getElementById('all-orders-list-area');
 const allOrdersList = document.getElementById('all-orders-list');
-const clearOrdersBtn = document.getElementById('clear-orders-btn');
 const showAllHistoryOrdersBtn = document.getElementById('show-all-history-orders-btn');
+
+// 餐點設定
+const deadlineInputs = document.querySelectorAll('.deadline-input');
+const setDeadlineBtns = document.querySelectorAll('.set-deadline-btn');
+const addMealBtns = document.querySelectorAll('.add-meal-btn');
 
 // 懸浮視窗
 const historyModal = document.getElementById('history-modal');
@@ -48,6 +42,26 @@ const historyCloseBtn = document.getElementById('history-close-btn');
 let currentUser = null;
 let currentIdentity = null;
 let currentOrders = {};
+
+// 初始化
+async function initialize() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/manager/meal_options`);
+        const data = await response.json();
+        memberMeals = data.meal_options;
+        orderDeadlines = data.order_deadlines;
+
+        // 設定管理員介面的截止時間
+        for (const mealType in orderDeadlines) {
+            const input = document.querySelector(`.deadline-input[data-meal-type="${mealType}"]`);
+            if (input) {
+                input.value = orderDeadlines[mealType];
+            }
+        }
+    } catch (error) {
+        console.error('初始化失敗:', error);
+    }
+}
 
 // --- 輔助函式 ---
 function showPage(pageId) {
@@ -64,24 +78,28 @@ function renderMemberMeals(userOrders) {
     currentMealsList.innerHTML = '';
     
     for (const meal in memberMeals) {
-        const mealId = meal.replace(/\s/g, '');
+        if (memberMeals[meal].length === 0) continue;
+
         const mealDiv = document.createElement('div');
         mealDiv.classList.add('meal-section');
-        mealDiv.innerHTML = `<h4>${meal}</h4>`;
+        
+        // 取得截止時間並顯示
+        const deadline = orderDeadlines[meal] || '未設定';
+        mealDiv.innerHTML = `<h4>${meal} <span class="deadline">(截止時間: ${deadline})</span></h4>`;
         
         memberMeals[meal].forEach(item => {
-            const itemId = `${mealId}-${item.item_name}`;
+            const itemId = `${item.restaurant}-${item.item_name}-${item.price}`;
             const itemDiv = document.createElement('div');
             itemDiv.classList.add('order-item');
             
-            const quantity = userOrders[itemId] ? userOrders[itemId].quantity : 0;
+            const quantity = userOrders[meal] && userOrders[meal][itemId] ? userOrders[meal][itemId].quantity : 0;
             
             itemDiv.innerHTML = `
-                <span>${item.item_name} (NT$ ${item.price})</span>
+                <span>${item.restaurant} - ${item.item_name} (NT$ ${item.price})</span>
                 <div class="order-controls">
-                    <button class="decrease-btn" data-id="${itemId}" data-price="${item.price}" data-name="${item.item_name}" data-meal="${meal}">-</button>
+                    <button class="decrease-btn" data-id="${itemId}" data-price="${item.price}" data-name="${item.item_name}" data-meal="${meal}" data-restaurant="${item.restaurant}">-</button>
                     <input type="text" class="quantity" value="${quantity}" readonly>
-                    <button class="increase-btn" data-id="${itemId}" data-price="${item.price}" data-name="${item.item_name}" data-meal="${meal}">+</button>
+                    <button class="increase-btn" data-id="${itemId}" data-price="${item.price}" data-name="${item.item_name}" data-meal="${meal}" data-restaurant="${item.restaurant}">+</button>
                 </div>
             `;
             mealDiv.appendChild(itemDiv);
@@ -89,6 +107,7 @@ function renderMemberMeals(userOrders) {
         currentMealsList.appendChild(mealDiv);
     }
 }
+
 
 function handleQuantityControls() {
     currentMealsList.addEventListener('click', (e) => {
@@ -100,8 +119,14 @@ function handleQuantityControls() {
         const itemName = targetBtn.dataset.name;
         const itemPrice = parseInt(targetBtn.dataset.price);
         const mealName = targetBtn.dataset.meal;
+        const restaurantName = targetBtn.dataset.restaurant;
         
-        let quantity = currentOrders[itemId] ? currentOrders[itemId].quantity : 0;
+        // 初始化餐別訂單
+        if (!currentOrders[mealName]) {
+            currentOrders[mealName] = {};
+        }
+
+        let quantity = currentOrders[mealName][itemId] ? currentOrders[mealName][itemId].quantity : 0;
         
         if (isIncrease) {
             quantity++;
@@ -110,14 +135,20 @@ function handleQuantityControls() {
         }
 
         if (quantity > 0) {
-            currentOrders[itemId] = {
+            currentOrders[mealName][itemId] = {
                 quantity: quantity,
                 item_name: itemName,
                 price: itemPrice,
-                meal_name: mealName
+                meal_name: mealName,
+                restaurant: restaurantName
             };
         } else {
-            delete currentOrders[itemId];
+            delete currentOrders[mealName][itemId];
+        }
+
+        // 如果餐別內沒有任何訂單，則刪除該餐別
+        if (Object.keys(currentOrders[mealName]).length === 0) {
+            delete currentOrders[mealName];
         }
 
         const quantityInput = targetBtn.parentElement.querySelector('.quantity');
@@ -215,18 +246,23 @@ showHistoryOrdersBtn.addEventListener('click', async () => {
             dateDiv.textContent = `日期: ${entry.date}`;
             historyModalContent.appendChild(dateDiv);
             
-            for (const orderId in entry.orders) {
-                const order = entry.orders[orderId];
-                const orderDiv = document.createElement('div');
-                orderDiv.classList.add('history-order-item');
-                orderDiv.textContent = `${order.meal_name} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
-                historyModalContent.appendChild(orderDiv);
+            for (const mealType in entry.orders) {
+                const mealHeader = document.createElement('h5');
+                mealHeader.textContent = mealType;
+                historyModalContent.appendChild(mealHeader);
+                
+                for (const orderId in entry.orders[mealType]) {
+                    const order = entry.orders[mealType][orderId];
+                    const orderDiv = document.createElement('div');
+                    orderDiv.classList.add('history-order-item');
+                    orderDiv.textContent = `${order.restaurant} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
+                    historyModalContent.appendChild(orderDiv);
+                }
             }
         });
     }
     historyModal.style.display = 'block';
 });
-
 
 // --- 管理員功能 ---
 showAllBalancesBtn.addEventListener('click', async () => {
@@ -295,26 +331,19 @@ showAllOrdersBtn.addEventListener('click', async () => {
         allOrdersList.appendChild(userHeader);
         
         const orderList = document.createElement('ul');
-        for (const orderId in userOrders) {
-            const order = userOrders[orderId];
-            const li = document.createElement('li');
-            li.textContent = `${order.meal_name} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
-            orderList.appendChild(li);
+        for (const mealType in userOrders) {
+            const mealHeader = document.createElement('li');
+            mealHeader.innerHTML = `<strong>${mealType}:</strong>`;
+            orderList.appendChild(mealHeader);
+
+            for (const orderId in userOrders[mealType]) {
+                const order = userOrders[mealType][orderId];
+                const li = document.createElement('li');
+                li.textContent = `${order.restaurant} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
+                orderList.appendChild(li);
+            }
         }
         allOrdersList.appendChild(orderList);
-    }
-});
-
-clearOrdersBtn.addEventListener('click', async () => {
-    if (confirm('確定要清空所有訂單嗎？此操作無法復原。')) {
-        const response = await fetch(`${API_BASE_URL}/manager/clear_orders`, {
-            method: 'POST'
-        });
-        const data = await response.json();
-        alert(data.message);
-        if (response.ok) {
-            showAllOrdersBtn.click(); // 重新整理訂單列表
-        }
     }
 });
 
@@ -338,17 +367,86 @@ showAllHistoryOrdersBtn.addEventListener('click', async () => {
                 dateDiv.textContent = `日期: ${entry.date}`;
                 historyModalContent.appendChild(dateDiv);
                 
-                for (const orderId in entry.orders) {
-                    const order = entry.orders[orderId];
-                    const orderDiv = document.createElement('div');
-                    orderDiv.classList.add('history-order-item');
-                    orderDiv.textContent = `${order.meal_name} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
-                    historyModalContent.appendChild(orderDiv);
+                for (const mealType in entry.orders) {
+                    const mealHeader = document.createElement('h5');
+                    mealHeader.textContent = mealType;
+                    historyModalContent.appendChild(mealHeader);
+                    
+                    for (const orderId in entry.orders[mealType]) {
+                        const order = entry.orders[mealType][orderId];
+                        const orderDiv = document.createElement('div');
+                        orderDiv.classList.add('history-order-item');
+                        orderDiv.textContent = `${order.restaurant} - ${order.item_name}: ${order.quantity}份 (NT$ ${order.price * order.quantity})`;
+                        historyModalContent.appendChild(orderDiv);
+                    }
                 }
             });
         }
     }
     historyModal.style.display = 'block';
+});
+
+setDeadlineBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const mealType = btn.dataset.mealType;
+        const input = document.querySelector(`.deadline-input[data-meal-type="${mealType}"]`);
+        const newDeadline = input.value;
+        if (!newDeadline) {
+            alert('請選擇一個有效的時間。');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/manager/update_deadline`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meal_type: mealType, deadline: newDeadline })
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (response.ok) {
+            // 更新本地數據並重新渲染會員介面
+            orderDeadlines[mealType] = newDeadline;
+            const memberInfoRes = await fetch(`${API_BASE_URL}/member/info/${currentUser}`);
+            const memberInfoData = await memberInfoRes.json();
+            renderMemberMeals(memberInfoData.current_orders);
+        }
+    });
+});
+
+addMealBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const mealType = btn.dataset.mealType;
+        const restaurantInput = document.querySelector(`.add-meal-restaurant[data-meal-type="${mealType}"]`);
+        const nameInput = document.querySelector(`.add-meal-name[data-meal-type="${mealType}"]`);
+        const priceInput = document.querySelector(`.add-meal-price[data-meal-type="${mealType}"]`);
+
+        const restaurant = restaurantInput.value.trim();
+        const item_name = nameInput.value.trim();
+        const price = parseInt(priceInput.value);
+
+        if (!restaurant || !item_name || isNaN(price) || price <= 0) {
+            alert('請輸入有效的餐點資訊。');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/manager/add_meal`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meal_type: mealType, restaurant, item_name, price })
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (response.ok) {
+            restaurantInput.value = '';
+            nameInput.value = '';
+            priceInput.value = '';
+            // 重新載入餐點選項
+            await initialize();
+            const memberInfoRes = await fetch(`${API_BASE_URL}/member/info/${currentUser}`);
+            const memberInfoData = await memberInfoRes.json();
+            renderMemberMeals(memberInfoData.current_orders);
+        }
+    });
 });
 
 
@@ -362,3 +460,5 @@ window.addEventListener('click', (event) => {
         historyModal.style.display = 'none';
     }
 });
+
+initialize();

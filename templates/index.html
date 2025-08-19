@@ -38,7 +38,6 @@
 
             <div id="member-order-area">
                 <h3>訂餐</h3>
-                <p>訂單截止時間: <span id="deadline">10:00</span></p>
                 <div id="current-meals-list"></div>
                 <button id="save-order-btn" class="save-order-btn">送出訂單</button>
             </div>
@@ -46,14 +45,10 @@
 
         <div id="manager-dashboard" style="display:none;">
             <h2>管理員中心</h2>
-            <div id="date-picker-container">
-                <input type="date" id="date-picker">
-            </div>
 
             <div class="manager-controls">
                 <button id="show-all-orders-btn">查看當日所有訂單</button>
                 <button id="show-all-history-orders-btn">查看所有歷史訂單</button>
-                <button id="clear-orders-btn">清空當日訂單</button>
                 <button id="show-all-balances-btn">查看所有會員餘額</button>
             </div>
 
@@ -66,6 +61,41 @@
                 <div id="all-orders-list-area" style="display:none;">
                     <h3>當日訂單</h3>
                     <ul id="all-orders-list"></ul>
+                </div>
+            </div>
+
+            <div id="meal-settings">
+                <h3>餐點設定</h3>
+                <div class="meal-setting-section">
+                    <h4>午餐</h4>
+                    <div class="setting-item">
+                        <label>截止時間:</label>
+                        <input type="time" class="deadline-input" data-meal-type="午餐">
+                        <button class="set-deadline-btn" data-meal-type="午餐">設定</button>
+                    </div>
+                    <div class="setting-item">
+                        <label>新增餐點:</label>
+                        <input type="text" placeholder="餐廳名稱" class="add-meal-restaurant" data-meal-type="午餐">
+                        <input type="text" placeholder="餐點名稱" class="add-meal-name" data-meal-type="午餐">
+                        <input type="number" placeholder="價格" class="add-meal-price" data-meal-type="午餐">
+                        <button class="add-meal-btn" data-meal-type="午餐">新增</button>
+                    </div>
+                </div>
+
+                <div class="meal-setting-section">
+                    <h4>晚餐</h4>
+                    <div class="setting-item">
+                        <label>截止時間:</label>
+                        <input type="time" class="deadline-input" data-meal-type="晚餐">
+                        <button class="set-deadline-btn" data-meal-type="晚餐">設定</button>
+                    </div>
+                    <div class="setting-item">
+                        <label>新增餐點:</label>
+                        <input type="text" placeholder="餐廳名稱" class="add-meal-restaurant" data-meal-type="晚餐">
+                        <input type="text" placeholder="餐點名稱" class="add-meal-name" data-meal-type="晚餐">
+                        <input type="number" placeholder="價格" class="add-meal-price" data-meal-type="晚餐">
+                        <button class="add-meal-btn" data-meal-type="晚餐">新增</button>
+                    </div>
                 </div>
             </div>
         </div>
