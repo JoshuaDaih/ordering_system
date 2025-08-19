@@ -367,6 +367,7 @@ header {
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 .setting-item label {
@@ -392,4 +393,75 @@ header {
 }
 .setting-item button:hover {
     background-color: #0056b3;
+}
+
+.current-meals-display ul {
+    list-style: none;
+    padding: 0;
+}
+
+.current-meals-display li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+.current-meals-display li button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.current-meals-display li button:hover {
+    background-color: #c82333;
+}
+
+/* 訂單總結的樣式 */
+.order-summary-list {
+    list-style: none;
+    padding: 0;
+}
+.order-summary-list li {
+    background-color: #e9e9e9;
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+.member-list {
+    margin-top: 10px;
+    padding-left: 10px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    color: #555;
+}
+.member-list-toggle {
+    font-size: 0.8em;
+    color: #007bff;
+    cursor: pointer;
+    font-weight: normal;
+}
+.member-list-toggle:hover {
+    text-decoration: underline;
+}
+
+#date-selection-area {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }

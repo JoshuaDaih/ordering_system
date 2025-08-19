@@ -9,16 +9,8 @@ app = Flask(__name__)
 member_data = {}
 order_data = {}
 order_history = {}
-meal_options = {
-    "早餐": [],
-    "午餐": [],
-    "晚餐": []
-}
-order_deadlines = {
-    "早餐": "10:00",
-    "午餐": "12:00",
-    "晚餐": "18:00"
-}
+meal_options = {}  # 儲存每日的餐點選項，鍵為日期字串 "YYYY-MM-DD"
+order_deadlines = {} # 儲存每日的訂餐截止時間，鍵為日期字串 "YYYY-MM-DD"
 
 # 檔案路徑
 MEMBER_DATA_FILE = "memberdata.json"
@@ -90,7 +82,8 @@ def get_member_info(username):
     if not user_info:
         return jsonify({'message': '會員不存在'}), 404
     
-    current_orders = order_data.get(username, {})
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    current_orders = order_data.get(today_date, {}).get(username, {})
     
     return jsonify({
         'username': username,
@@ -121,12 +114,13 @@ def submit_order():
     data = request.json
     username = data.get('username')
     new_orders = data.get('orders', {})
+    today_date = datetime.now().strftime("%Y-%m-%d")
     
     now = datetime.now().strftime("%H:%M")
     
     # 檢查訂單是否已過截止時間
     for meal_type, items in new_orders.items():
-        if items and now > order_deadlines.get(meal_type, "23:59"):
+        if items and now > order_deadlines.get(today_date, {}).get(meal_type, "23:59"):
             return jsonify({'message': f'{meal_type}已超過截止時間，無法送出訂單。'}), 400
 
     user_info = member_data.get(username)
@@ -141,7 +135,9 @@ def submit_order():
     user_info['remainingmoney'] -= total_cost
     
     # 更新當日訂單
-    order_data[username] = new_orders
+    if today_date not in order_data:
+        order_data[today_date] = {}
+    order_data[today_date][username] = new_orders
     
     # 更新歷史訂單
     history_entry = {
@@ -157,7 +153,8 @@ def submit_order():
 
 @app.route('/manager/all_orders')
 def get_all_orders():
-    return jsonify(order_data)
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    return jsonify(order_data.get(today_date, {}))
 
 @app.route('/member/history/<username>')
 def get_member_history(username):
@@ -168,42 +165,64 @@ def get_member_history(username):
 def get_all_history():
     return jsonify(order_history)
 
-@app.route('/manager/meal_options', methods=['GET'])
-def get_meal_options():
+@app.route('/manager/meal_options/<date>', methods=['GET'])
+def get_meal_options_by_date(date):
     return jsonify({
-        'meal_options': meal_options,
-        'order_deadlines': order_deadlines
+        'meal_options': meal_options.get(date, {}),
+        'order_deadlines': order_deadlines.get(date, {})
     })
 
 @app.route('/manager/update_deadline', methods=['POST'])
 def update_deadline():
     data = request.json
+    date = data.get('date')
     meal_type = data.get('meal_type')
     new_deadline = data.get('deadline')
-    if meal_type in order_deadlines:
-        order_deadlines[meal_type] = new_deadline
-        save_data()
-        return jsonify({'message': f'{meal_type}截止時間已更新'}), 200
-    return jsonify({'message': '更新失敗'}), 400
+    
+    if date not in order_deadlines:
+        order_deadlines[date] = {}
+    
+    order_deadlines[date][meal_type] = new_deadline
+    save_data()
+    return jsonify({'message': f'{date}的{meal_type}截止時間已更新'}), 200
 
 @app.route('/manager/add_meal', methods=['POST'])
 def add_meal():
     data = request.json
+    date = data.get('date')
     meal_type = data.get('meal_type')
     restaurant = data.get('restaurant')
     item_name = data.get('item_name')
     price = data.get('price')
 
-    if meal_type not in meal_options:
-        return jsonify({'message': '無效的餐別'}), 400
+    if date not in meal_options:
+        meal_options[date] = {}
+    if meal_type not in meal_options[date]:
+        meal_options[date][meal_type] = []
     
-    meal_options[meal_type].append({
+    meal_options[date][meal_type].append({
         'restaurant': restaurant,
         'item_name': item_name,
         'price': price
     })
     save_data()
     return jsonify({'message': f'已新增 {item_name}'}), 200
+
+@app.route('/manager/delete_meal', methods=['POST'])
+def delete_meal():
+    data = request.json
+    date = data.get('date')
+    meal_type = data.get('meal_type')
+    item_name = data.get('item_name')
+
+    if date in meal_options and meal_type in meal_options[date]:
+        meal_options[date][meal_type] = [
+            item for item in meal_options[date][meal_type] if item['item_name'] != item_name
+        ]
+        save_data()
+        return jsonify({'message': f'已刪除 {item_name}'}), 200
+    
+    return jsonify({'message': '刪除失敗'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)

@@ -47,7 +47,7 @@
             <h2>管理員中心</h2>
 
             <div class="manager-controls">
-                <button id="show-all-orders-btn">查看當日所有訂單</button>
+                <button id="show-today-orders-btn">查看當日訂單</button>
                 <button id="show-all-history-orders-btn">查看所有歷史訂單</button>
                 <button id="show-all-balances-btn">查看所有會員餘額</button>
             </div>
@@ -64,6 +64,11 @@
                 </div>
             </div>
 
+            <div id="date-selection-area">
+                <input type="date" id="calendar-input">
+                <p>選定日期: <span id="selected-date"></span></p>
+            </div>
+            
             <div id="meal-settings">
                 <h3>餐點設定</h3>
                 <div class="meal-setting-section">
@@ -72,6 +77,10 @@
                         <label>截止時間:</label>
                         <input type="time" class="deadline-input" data-meal-type="午餐">
                         <button class="set-deadline-btn" data-meal-type="午餐">設定</button>
+                    </div>
+                    <div class="current-meals-display">
+                        <p>當日菜單:</p>
+                        <ul id="lunch-menu-list"></ul>
                     </div>
                     <div class="setting-item">
                         <label>新增餐點:</label>
@@ -89,6 +98,10 @@
                         <input type="time" class="deadline-input" data-meal-type="晚餐">
                         <button class="set-deadline-btn" data-meal-type="晚餐">設定</button>
                     </div>
+                    <div class="current-meals-display">
+                        <p>當日菜單:</p>
+                        <ul id="dinner-menu-list"></ul>
+                    </div>
                     <div class="setting-item">
                         <label>新增餐點:</label>
                         <input type="text" placeholder="餐廳名稱" class="add-meal-restaurant" data-meal-type="晚餐">
@@ -101,10 +114,10 @@
         </div>
     </div>
 
-    <div id="history-modal" class="modal">
+    <div id="modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" id="history-close-btn">&times;</span>
-            <div id="history-modal-content"></div>
+            <span class="close-btn" id="modal-close-btn">&times;</span>
+            <div id="modal-content"></div>
         </div>
     </div>
 
