@@ -76,6 +76,15 @@ def login():
 def logout():
     return jsonify({'message': '登出成功'}), 200
 
+# 新增這個 API endpoint，讓會員介面可以取得當日菜單與截止時間
+@app.route('/member/meal_options')
+def get_member_meal_options():
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    return jsonify({
+        'meal_options': meal_options.get(today_date, {}),
+        'order_deadlines': order_deadlines.get(today_date, {})
+    })
+
 @app.route('/member/info/<username>')
 def get_member_info(username):
     user_info = member_data.get(username)
@@ -83,6 +92,7 @@ def get_member_info(username):
         return jsonify({'message': '會員不存在'}), 404
     
     today_date = datetime.now().strftime("%Y-%m-%d")
+    # 這裡的 order_data 結構是 order_data[date][username]
     current_orders = order_data.get(today_date, {}).get(username, {})
     
     return jsonify({

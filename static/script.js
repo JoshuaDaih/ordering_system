@@ -2,7 +2,8 @@
 const API_BASE_URL = '';
 let memberMeals = {};
 let orderDeadlines = {};
-let selectedDate = new Date().toISOString().slice(0, 10);
+// 確保會員介面使用當前日期，管理員介面使用選定日期
+let selectedDate = new Date().toISOString().slice(0, 10); 
 // --- 網站配置與資料模型 ---
 
 // --- 取得 DOM 元素 ---
@@ -48,26 +49,46 @@ let currentUser = null;
 let currentIdentity = null;
 let currentOrders = {};
 
-// 初始化
+// 初始化：根據身份載入不同的資料
 async function initialize() {
-    // 初始化日期選擇器
-    calendarInput.value = selectedDate;
-    selectedDateSpan.textContent = selectedDate;
+    if (currentIdentity === 'manager') {
+        // 管理員：載入選定日期的菜單
+        calendarInput.value = selectedDate;
+        selectedDateSpan.textContent = selectedDate;
 
-    try {
         const response = await fetch(`${API_BASE_URL}/manager/meal_options/${selectedDate}`);
         const data = await response.json();
-        memberMeals = data.meal_options;
+        memberMeals = data.meal_options; // 這裡 memberMeals 其實是管理員選定日期的菜單
         orderDeadlines = data.order_deadlines;
 
         renderManagerMealSettings();
 
-    } catch (error) {
-        console.error('初始化失敗:', error);
+    } else if (currentIdentity === 'member') {
+        // 會員：載入**當日**菜單
+        const response = await fetch(`${API_BASE_URL}/member/meal_options`);
+        const data = await response.json();
+        memberMeals = data.meal_options; // 會員只關心當日的菜單
+        orderDeadlines = data.order_deadlines;
     }
+
 }
 
-// --- 輔助函式 ---
+// 輔助函式：只用於會員介面，載入當日訂單
+async function loadMemberDashboard() {
+    // 步驟 1: 載入當日菜單與截止時間
+    await initialize(); // 會自動載入當日菜單到 memberMeals/orderDeadlines
+
+    // 步驟 2: 載入會員資訊（餘額、當日訂單）
+    const memberInfoRes = await fetch(`${API_BASE_URL}/member/info/${currentUser}`);
+    const memberInfoData = await memberInfoRes.json();
+    
+    balanceInfo.textContent = memberInfoData.remainingmoney;
+    
+    // 步驟 3: 渲染訂餐介面
+    renderMemberMeals(memberInfoData.current_orders);
+}
+
+
 function showPage(pageId) {
     loginContainer.style.display = 'none';
     appContainer.style.display = 'block';
@@ -81,12 +102,12 @@ function renderMemberMeals(userOrders) {
     currentOrders = userOrders;
     currentMealsList.innerHTML = '';
     
-    // 渲染會員介面時，只顯示當日的餐點
-    const todayMeals = memberMeals[selectedDate] || {};
-    const todayDeadlines = orderDeadlines[selectedDate] || {};
+    // 會員：使用的菜單是 initialize() 載入的當日菜單 (memberMeals) 和截止時間 (orderDeadlines)
+    const todayMeals = memberMeals || {};
+    const todayDeadlines = orderDeadlines || {};
 
     for (const meal in todayMeals) {
-        if (todayMeals[meal].length === 0) continue;
+        if (!Array.isArray(todayMeals[meal]) || todayMeals[meal].length === 0) continue;
 
         const mealDiv = document.createElement('div');
         mealDiv.classList.add('meal-section');
@@ -95,6 +116,7 @@ function renderMemberMeals(userOrders) {
         mealDiv.innerHTML = `<h4>${meal} <span class="deadline">(截止時間: ${deadline})</span></h4>`;
         
         todayMeals[meal].forEach(item => {
+            // 這裡的 itemId 必須與後端儲存訂單時的 Key 格式一致
             const itemId = `${item.restaurant}-${item.item_name}-${item.price}`;
             const itemDiv = document.createElement('div');
             itemDiv.classList.add('order-item');
@@ -116,8 +138,8 @@ function renderMemberMeals(userOrders) {
 }
 
 function renderManagerMealSettings() {
-    const dailyDeadlines = orderDeadlines[selectedDate] || {};
-    const dailyMeals = memberMeals[selectedDate] || {};
+    const dailyDeadlines = orderDeadlines || {};
+    const dailyMeals = memberMeals || {};
 
     // 渲染截止時間
     deadlineInputs.forEach(input => {
@@ -186,7 +208,7 @@ function handleQuantityControls() {
             delete currentOrders[mealName][itemId];
         }
 
-        if (Object.keys(currentOrders[mealName]).length === 0) {
+        if (Object.keys(currentOrders[mealName] || {}).length === 0) {
             delete currentOrders[mealName];
         }
 
@@ -218,12 +240,11 @@ loginBtn.addEventListener('click', async () => {
             
             if (currentIdentity === 'member') {
                 showPage('member-dashboard');
-                const memberInfoRes = await fetch(`${API_BASE_URL}/member/info/${currentUser}`);
-                const memberInfoData = await memberInfoRes.json();
-                balanceInfo.textContent = memberInfoData.remainingmoney;
-                renderMemberMeals(memberInfoData.current_orders);
+                await loadMemberDashboard(); // 使用新的載入函式
             } else if (currentIdentity === 'manager') {
                 showPage('manager-dashboard');
+                // 管理員登入時，預設日期為今天
+                selectedDate = new Date().toISOString().slice(0, 10);
                 await initialize();
             }
         } else {
@@ -258,10 +279,8 @@ saveOrderBtn.addEventListener('click', async () => {
 
         if (response.ok) {
             alert('訂單送出成功');
-            // 更新餘額
-            const memberInfoRes = await fetch(`${API_BASE_URL}/member/info/${currentUser}`);
-            const memberInfoData = await memberInfoRes.json();
-            balanceInfo.textContent = memberInfoData.remainingmoney;
+            // 重新載入會員資訊以更新餘額和訂單
+            await loadMemberDashboard(); 
         } else {
             alert(data.message);
         }
@@ -352,16 +371,16 @@ showAllBalancesBtn.addEventListener('click', async () => {
 
 showTodayOrdersBtn.addEventListener('click', async () => {
     const response = await fetch(`${API_BASE_URL}/manager/all_orders`);
-    const orders = await response.json();
+    const orders = await response.json(); // 這是當日所有會員的訂單
     
     const summary = {};
-    const memberList = {};
 
     for (const username in orders) {
         for (const mealType in orders[username]) {
             for (const itemId in orders[username][mealType]) {
                 const item = orders[username][mealType][itemId];
-                const key = `${item.meal_name}-${item.restaurant}-${item.item_name}`;
+                // 訂單摘要的 key 包含所有重要資訊
+                const key = `${item.meal_name}|${item.restaurant}|${item.item_name}|${item.price}`;
                 
                 if (!summary[key]) {
                     summary[key] = {
@@ -458,7 +477,7 @@ showAllHistoryOrdersBtn.addEventListener('click', async () => {
 calendarInput.addEventListener('change', async (e) => {
     selectedDate = e.target.value;
     selectedDateSpan.textContent = selectedDate;
-    await initialize();
+    await initialize(); // 重新載入選定日期的管理員菜單
 });
 
 // 餐點設定
@@ -480,9 +499,8 @@ setDeadlineBtns.forEach(btn => {
         const data = await response.json();
         alert(data.message);
         if (response.ok) {
-            // 更新本地數據
-            if (!orderDeadlines[selectedDate]) orderDeadlines[selectedDate] = {};
-            orderDeadlines[selectedDate][mealType] = newDeadline;
+            // 更新本地數據並重新渲染
+            await initialize();
         }
     });
 });
@@ -514,7 +532,7 @@ addMealBtns.forEach(btn => {
             restaurantInput.value = '';
             nameInput.value = '';
             priceInput.value = '';
-            await initialize(); // 重新載入餐點選項
+            await initialize(); // 重新載入管理員介面的菜單
         }
     });
 });
@@ -550,4 +568,6 @@ window.addEventListener('click', (event) => {
     }
 });
 
-initialize();
+// 頁面載入時的初始化 (但登入後會再次初始化)
+// 這裡保留，但實際的資料載入會在登入邏輯中執行
+// initialize();
