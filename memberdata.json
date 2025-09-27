@@ -1,26 +1,67 @@
 {
-    
-
-    
-    
+    "Manager": {
+      "password": "80208020",
+      "remainingmoney": 0,
+      "identity": "manager"
+    },
     "manager": {
       "password": "12345678",
       "remainingmoney": 0,
       "identity": "manager"
     },
-    "memberA": {
-      "password": "passwordA",
-      "remainingmoney": 1000,
+    "Albert": {
+      "password": "Albert208",
+      "remainingmoney": 0,
       "identity": "member"
     },
-    "memberB": {
-      "password": "passwordB",
-      "remainingmoney": 850,
+    "Alex": {
+      "password": "Alex207",
+      "remainingmoney": 0,
       "identity": "member"
     },
-    "memberC": {
-      "password": "passwordC",
-      "remainingmoney": 1200,
+    "Andrew": {
+      "password": "Andrew208",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Evan": {
+      "password": "Evan208",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Eric": {
+      "password": "Eric220",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Jason": {
+      "password": "Jason212",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Jim": {
+      "password": "Jim215",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Joshua": {
+      "password": "Joshua214",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Leo": {
+      "password": "Leo223",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Peter": {
+      "password": "Peter218",
+      "remainingmoney": 0,
+      "identity": "member"
+    },
+    "Tim": {
+      "password": "Tim226",
+      "remainingmoney": 0,
       "identity": "member"
     }
   }
