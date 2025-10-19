@@ -1,113 +1,88 @@
 /* ------------------------------------------------ */
-/* 賽博龐克 (Cyberpunk) 風格配色 (基於 FRC#8020 標誌) */
+/* 圓角賽博龐克風格配色 (基於 FRC#8020 標誌) */
+/* 顏色比例調整：主體藍色/金屬銀為主，螢光黃為輔 */
 /* ------------------------------------------------ */
 
 /* 色板定義 */
 :root {
-    --color-bg-dark: #1f2730;      /* 深藍灰背景 (主要底色) */
-    --color-primary-blue: #004d80; /* 主體藍色 (深科技藍) */
-    --color-accent-silver: #a0a8b3; /* 金屬銀 (邊框、次要文字) */
-    --color-accent-yellow: #ffcc00; /* 螢光黃 (點綴色、高亮) */
+    --color-bg-dark: #1f2730;      /* 極深藍灰 (最底層背景) */
+    --color-primary-blue: #004d80; /* 主體藍色 (區塊背景) - 比例最大 */
+    --color-accent-silver: #a0a8b3; /* 金屬銀 (邊框、次要文字) - 比例第二大 */
+    --color-accent-yellow: #ffcc00; /* 螢光黃 (點綴色、高亮) - 比例小 */
     --color-text-light: #e0e0e0;   /* 淺色文字 */
     --color-error: #ff3366;        /* 錯誤/警告紅 */
+    --border-radius-main: 6px;     /* 主要圓角半徑 */
+    --border-radius-small: 3px;    /* 較小圓角半徑 */
 }
 
 /* 基礎設定 */
 body {
-    font-family: 'Consolas', 'Courier New', monospace; /* 使用等寬字體模擬科技介面 */
+    font-family: 'Consolas', 'Courier New', monospace; 
     min-height: 100vh;
-    background-color: var(--color-bg-dark); /* 深藍灰背景 */
-    color: var(--color-text-light);          /* 淺色文字 */
+    background-color: var(--color-bg-dark); 
+    color: var(--color-text-light);          
     margin: 0;
     line-height: 1.6;
 }
 
 /* 容器與區塊 */
 #app {
-    background-color: var(--color-primary-blue); /* 主體藍色背景 */
+    background-color: var(--color-primary-blue); 
     padding: 30px;
-    border-radius: 0; /* 銳利的邊角 */
-    box-shadow: 0 0 15px rgba(0, 150, 255, 0.5); /* 藍色光暈效果 */
+    border-radius: var(--border-radius-main); /* 主體圓角 */
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.5); 
     width: 90%;
     max-width: 800px;
     box-sizing: border-box;
     margin: 40px auto;
-    border: 2px solid var(--color-accent-silver); /* 金屬邊框 */
+    border: 2px solid var(--color-accent-silver); 
 }
 
 /* 登入介面 */
 #login-container {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    width: 100%;
     background-color: var(--color-bg-dark);
 }
 
 #login-container h1 {
-    color: var(--color-accent-yellow); /* 標題使用螢光黃 */
-    text-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
-    margin-bottom: 30px;
-    text-transform: uppercase;
-}
-
-.input-group,
-.button-group {
-    margin: 15px auto;
-    width: 90%;
-    max-width: 400px;
+    color: var(--color-accent-yellow); 
+    text-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
 }
 
 #login-container input {
-    width: 100%;
-    padding: 12px;
     border: 2px solid var(--color-accent-silver);
-    background-color: var(--color-bg-dark); /* 輸入框使用深色背景 */
+    background-color: var(--color-bg-dark); 
     color: var(--color-text-light);
-    border-radius: 0;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    border-radius: var(--border-radius-small); /* 輸入框圓角 */
 }
 
 /* 按鈕風格 */
 button {
-    padding: 10px 20px;
-    background-color: var(--color-accent-yellow); /* 主要按鈕使用螢光黃 */
-    color: var(--color-bg-dark); /* 按鈕文字為深色 */
-    border: none;
-    border-radius: 0;
-    cursor: pointer;
+    background-color: var(--color-accent-silver); /* 主要按鈕使用銀色 (增加比例) */
+    color: var(--color-bg-dark); 
+    border-radius: var(--border-radius-small); /* 按鈕圓角 */
     font-weight: bold;
-    text-transform: uppercase;
-    transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 button:hover {
-    background-color: var(--color-text-light); /* Hover 時變為淺色 */
-    box-shadow: 0 0 10px var(--color-accent-yellow); /* 保持光暈 */
+    background-color: var(--color-text-light); 
+    box-shadow: 0 0 8px var(--color-accent-silver); /* 銀色光暈 */
 }
 
 #login-btn {
-    width: 100%;
+    background-color: var(--color-accent-silver); /* 登入按鈕使用銀色 */
 }
 
 /* 標頭與導航 */
 header {
     border-bottom: 1px dashed var(--color-accent-silver);
-    padding-bottom: 15px;
-    margin-bottom: 25px;
 }
 
 #current-user {
-    color: var(--color-accent-yellow);
+    color: var(--color-text-light); /* 保持亮色但非螢光 */
 }
 
 #logout-btn {
     background-color: var(--color-error);
-    color: var(--color-text-light);
-    border: 1px solid var(--color-error);
 }
 #logout-btn:hover {
     background-color: #ff5588;
@@ -115,107 +90,65 @@ header {
 }
 
 h2, h3, h4 {
-    color: var(--color-accent-yellow);
-    text-transform: uppercase;
+    color: var(--color-accent-yellow); /* 標題高亮繼續使用螢光黃 */
     border-left: 5px solid var(--color-accent-yellow);
-    padding-left: 10px;
-    margin-top: 30px;
-    margin-bottom: 15px;
 }
-h4 { font-size: 1.1em; }
 
 /* 會員中心 */
 #balance-info-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
     border: 1px solid var(--color-accent-silver);
-    margin-bottom: 20px;
+    border-radius: var(--border-radius-small);
 }
 
 #balance-info {
-    font-weight: bold;
     color: var(--color-accent-yellow);
 }
 
 /* 訂餐區塊 */
 #member-order-area, .meal-setting-section {
     background-color: var(--color-primary-blue);
-    padding: 20px;
     border: 1px solid var(--color-accent-silver);
-    margin-top: 20px;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
-}
-
-.meal-section h4 {
-    color: var(--color-text-light);
-    border-left: none;
-    border-bottom: 1px dashed var(--color-accent-silver);
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-}
-.deadline {
-    font-size: 0.8em;
-    color: var(--color-accent-yellow);
-    float: right;
+    border-radius: var(--border-radius-main); /* 區塊圓角 */
 }
 
 .order-item {
     background-color: var(--color-bg-dark);
     border: 1px solid var(--color-accent-silver);
-    padding: 8px;
-    margin-bottom: 5px;
+    border-radius: var(--border-radius-small);
 }
 
 .order-controls button {
     background-color: var(--color-accent-silver);
-    color: var(--color-bg-dark);
-    width: 25px;
-    height: 25px;
-    font-size: 1em;
 }
-.order-controls button:hover {
-    background-color: var(--color-text-light);
-    box-shadow: none;
-}
-
 .order-controls .quantity {
-    background-color: var(--color-bg-dark);
-    color: var(--color-accent-yellow);
     border: 1px solid var(--color-accent-yellow);
 }
 
 .save-order-btn {
-    width: 100%;
-    margin-top: 20px;
-    background-color: var(--color-accent-yellow);
+    background-color: var(--color-accent-yellow); /* 送出訂單使用螢光黃高亮 */
+    color: var(--color-bg-dark);
+}
+.save-order-btn:hover {
+    background-color: #ffdd44;
+    box-shadow: 0 0 10px var(--color-accent-yellow);
 }
 
 /* 管理員介面 */
 .manager-controls button {
     background-color: var(--color-accent-silver);
     color: var(--color-bg-dark);
-    font-size: 0.9em;
-}
-.manager-controls button:hover {
-    background-color: var(--color-text-light);
 }
 
 #date-selection-area {
     border: 1px dashed var(--color-accent-silver);
-    padding: 10px;
-    margin-bottom: 20px;
+    border-radius: var(--border-radius-small);
 }
 
 #calendar-input {
     background-color: var(--color-bg-dark);
     color: var(--color-accent-yellow);
     border: 1px solid var(--color-accent-yellow);
-    padding: 5px;
-}
-#selected-date {
-    color: var(--color-accent-yellow);
+    border-radius: var(--border-radius-small);
 }
 
 /* 餐點設定區 */
@@ -223,76 +156,36 @@ h4 { font-size: 1.1em; }
     background-color: var(--color-bg-dark);
     border: 1px solid var(--color-accent-silver);
     color: var(--color-text-light);
+    border-radius: var(--border-radius-small);
 }
 .setting-item button {
-    background-color: var(--color-accent-yellow);
-    color: var(--color-bg-dark);
-    font-size: 0.9em;
+    background-color: var(--color-accent-silver); /* 設定按鈕使用銀色 */
 }
 
 .current-meals-display li {
     background-color: var(--color-bg-dark);
     border: 1px solid var(--color-accent-silver);
-    color: var(--color-text-light);
-    margin-bottom: 4px;
+    border-radius: var(--border-radius-small);
 }
 .current-meals-display li button {
     background-color: var(--color-error);
-    color: var(--color-text-light);
-    padding: 3px 8px;
-}
-.current-meals-display li button:hover {
-    background-color: #ff5588;
 }
 
 /* 懸浮視窗 (Modal) */
 .modal-content {
     background-color: var(--color-bg-dark);
     border: 2px solid var(--color-accent-yellow);
-    box-shadow: 0 0 20px rgba(255, 204, 0, 0.7); /* 螢光黃光暈 */
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.5); 
+    border-radius: var(--border-radius-main); /* Modal 圓角 */
 }
 
 /* 訂單總結列表 */
 .order-summary-list li {
     background-color: var(--color-primary-blue);
     border: 1px solid var(--color-accent-silver);
+    border-radius: var(--border-radius-small);
 }
-.summary-item {
-    border-bottom: 1px dashed var(--color-accent-silver);
-    padding-bottom: 5px;
-    margin-bottom: 5px;
-}
+
 .member-list-toggle {
     color: var(--color-accent-yellow);
-}
-.member-list {
-    border-top: none;
-    padding-left: 0;
-    color: var(--color-text-light);
-}
-.member-list strong {
-    color: var(--color-accent-yellow);
-}
-
-/* 歷史訂單 */
-.history-order-date {
-    color: var(--color-accent-yellow);
-}
-.history-order-item {
-    color: var(--color-accent-silver);
-}
-.modal-content h3 {
-    text-align: center;
-    color: var(--color-accent-yellow);
-}
-
-
-/* 其他次要調整 */
-.modal-content h4 {
-    color: var(--color-text-light);
-    border-left: 3px solid var(--color-accent-silver);
-}
-.modal-content h5 {
-    color: var(--color-accent-silver);
-    margin-left: 10px;
 }
