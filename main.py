@@ -139,7 +139,7 @@ def submit_order():
     
     total_cost = sum(item['price'] * item['quantity'] for meal in new_orders.values() for item in meal.values())
     
-    if user_info['remainingmoney'] < total_cost:
+    if user_info['remainingmoney'] < 0:
         return jsonify({'message': '餘額不足，無法送出訂單。'}), 400
     
     user_info['remainingmoney'] -= total_cost
