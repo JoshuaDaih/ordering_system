@@ -1,191 +1,672 @@
-/* ------------------------------------------------ */
-/* 圓角賽博龐克風格配色 (基於 FRC#8020 標誌) */
-/* 顏色比例調整：主體藍色/金屬銀為主，螢光黃為輔 */
-/* ------------------------------------------------ */
-
-/* 色板定義 */
-:root {
-    --color-bg-dark: #1f2730;      /* 極深藍灰 (最底層背景) */
-    --color-primary-blue: #004d80; /* 主體藍色 (區塊背景) - 比例最大 */
-    --color-accent-silver: #a0a8b3; /* 金屬銀 (邊框、次要文字) - 比例第二大 */
-    --color-accent-yellow: #ffcc00; /* 螢光黃 (點綴色、高亮) - 比例小 */
-    --color-text-light: #e0e0e0;   /* 淺色文字 */
-    --color-error: #ff3366;        /* 錯誤/警告紅 */
-    --border-radius-main: 6px;     /* 主要圓角半徑 */
-    --border-radius-small: 3px;    /* 較小圓角半徑 */
-}
-
-/* 基礎設定 */
 body {
-    font-family: 'Consolas', 'Courier New', monospace; 
+    font-family: Arial, sans-serif;
     min-height: 100vh;
-    background-color: var(--color-bg-dark); 
-    color: var(--color-text-light);          
+    background: linear-gradient(135deg, #87CEEB 0%, #B0E0E6 50%, #E0F6FF 100%);
     margin: 0;
-    line-height: 1.6;
 }
 
-/* 容器與區塊 */
 #app {
-    background-color: var(--color-primary-blue); 
-    padding: 30px;
-    border-radius: var(--border-radius-main); /* 主體圓角 */
-    box-shadow: 0 0 15px rgba(0, 150, 255, 0.5); 
+    background: linear-gradient(145deg, #ffffff 0%, #f0f8ff 100%);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(135, 206, 235, 0.3), 0 4px 10px rgba(0, 0, 0, 0.1);
     width: 90%;
     max-width: 800px;
     box-sizing: border-box;
-    margin: 40px auto;
-    border: 2px solid var(--color-accent-silver); 
+    margin: auto;
+    border: 1px solid rgba(135, 206, 235, 0.2);
 }
 
-/* 登入介面 */
 #login-container {
-    background-color: var(--color-bg-dark);
+    text-align: center;
+    /* 新增樣式，讓容器本身可以置中其內容 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.input-group,
+.button-group {
+    margin: 15px auto;
+    width: 90%;
+    max-width: 400px;
 }
 
 #login-container h1 {
-    color: var(--color-accent-yellow); 
-    text-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+    margin-bottom: 20px;
 }
 
 #login-container input {
-    border: 2px solid var(--color-accent-silver);
-    background-color: var(--color-bg-dark); 
-    color: var(--color-text-light);
-    border-radius: var(--border-radius-small); /* 輸入框圓角 */
+    width: 100%;
+    padding: 12px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(135, 206, 235, 0.1);
 }
 
-/* 按鈕風格 */
-button {
-    background-color: var(--color-accent-silver); /* 主要按鈕使用銀色 (增加比例) */
-    color: var(--color-bg-dark); 
-    border-radius: var(--border-radius-small); /* 按鈕圓角 */
-    font-weight: bold;
-}
-
-button:hover {
-    background-color: var(--color-text-light); 
-    box-shadow: 0 0 8px var(--color-accent-silver); /* 銀色光暈 */
+#login-container input:focus {
+    outline: none;
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
+    background: white;
 }
 
 #login-btn {
-    background-color: var(--color-accent-silver); /* 登入按鈕使用銀色 */
+    width: 100%;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.4);
 }
 
-/* 標頭與導航 */
+#login-btn:hover {
+    background: linear-gradient(135deg, #4682B4 0%, #2E8B57 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(135, 206, 235, 0.6);
+}
+
+/* 登入後頁面樣式 */
+#main-container {
+    padding: 20px;
+}
+
 header {
-    border-bottom: 1px dashed var(--color-accent-silver);
-}
-
-#current-user {
-    color: var(--color-text-light); /* 保持亮色但非螢光 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 #logout-btn {
-    background-color: var(--color-error);
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
 }
+
 #logout-btn:hover {
-    background-color: #ff5588;
-    box-shadow: 0 0 10px var(--color-error);
+    background: linear-gradient(135deg, #FF5252 0%, #FF6B6B 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.5);
 }
 
-h2, h3, h4 {
-    color: var(--color-accent-yellow); /* 標題高亮繼續使用螢光黃 */
-    border-left: 5px solid var(--color-accent-yellow);
+#show-history-orders-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: auto; /* 靠右對齊 */
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(135, 206, 235, 0.3);
+}
+#show-history-orders-btn:hover {
+    background: linear-gradient(135deg, #4682B4 0%, #2E8B57 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(135, 206, 235, 0.5);
 }
 
-/* 會員中心 */
-#balance-info-area {
-    border: 1px solid var(--color-accent-silver);
-    border-radius: var(--border-radius-small);
-}
 
 #balance-info {
-    color: var(--color-accent-yellow);
+    font-weight: bold;
+    color: green;
 }
 
-/* 訂餐區塊 */
-#member-order-area, .meal-setting-section {
-    background-color: var(--color-primary-blue);
-    border: 1px solid var(--color-accent-silver);
-    border-radius: var(--border-radius-main); /* 區塊圓角 */
+/* Manager 介面樣式 */
+#manager-dashboard {
+    text-align: center;
 }
 
+#date-picker-container {
+    margin-bottom: 20px;
+}
+
+/* 新增 - 所有會員餘額列表樣式 */
+#member-balance-list-area {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(145deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-radius: 12px;
+    box-shadow: inset 0 2px 8px rgba(135, 206, 235, 0.1), 0 4px 15px rgba(135, 206, 235, 0.1);
+    border: 1px solid rgba(135, 206, 235, 0.2);
+}
+
+#member-balance-list-area h3 {
+    margin-top: 0;
+}
+
+/* Member 訂餐區樣式 */
+#member-order-area {
+    background: linear-gradient(145deg, #f0f8ff 0%, #e6f3ff 100%);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: inset 0 2px 8px rgba(135, 206, 235, 0.1), 0 4px 15px rgba(135, 206, 235, 0.1);
+    border: 1px solid rgba(135, 206, 235, 0.2);
+}
+
+/* 懸浮視窗樣式 */
+.modal {
+    display: none; /* 預設隱藏 */
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background: linear-gradient(145deg, #ffffff 0%, #f0f8ff 100%);
+    margin: 10% auto;
+    padding: 20px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    width: 80%;
+    max-width: 600px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(135, 206, 235, 0.3), 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* 關閉按鈕樣式 */
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 訂單與餐點選單樣式 */
 .order-item {
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-accent-silver);
-    border-radius: var(--border-radius-small);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    border: 2px solid rgba(135, 206, 235, 0.2);
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(135, 206, 235, 0.1);
+    transition: all 0.3s ease;
+}
+
+.order-item:hover {
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.2);
+    transform: translateY(-1px);
+}
+
+.order-controls {
+    display: flex;
+    align-items: center;
 }
 
 .order-controls button {
-    background-color: var(--color-accent-silver);
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(135, 206, 235, 0.3);
 }
+
+.order-controls button:hover {
+    background: linear-gradient(135deg, #4682B4 0%, #2E8B57 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(135, 206, 235, 0.5);
+}
+
 .order-controls .quantity {
-    border: 1px solid var(--color-accent-yellow);
+    width: 40px;
+    height: 30px;
+    text-align: center;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    margin: 0 5px;
+    padding: 0;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
 }
 
-.save-order-btn {
-    background-color: var(--color-accent-yellow); /* 送出訂單使用螢光黃高亮 */
-    color: var(--color-bg-dark);
-}
-.save-order-btn:hover {
-    background-color: #ffdd44;
-    box-shadow: 0 0 10px var(--color-accent-yellow);
+.order-controls .quantity:focus {
+    outline: none;
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.2);
+    background: white;
 }
 
-/* 管理員介面 */
+#meal-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#meal-input-group input,
+#meal-input-group select { /* 新增 select 樣式 */
+    flex: 1;
+    padding: 10px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+#meal-input-group input:focus,
+#meal-input-group select:focus {
+    outline: none;
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
+    background: white;
+}
+
+#balance-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#balance-list li {
+    padding: 12px;
+    border-bottom: 2px solid rgba(135, 206, 235, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+}
+#balance-list li:hover {
+    background: linear-gradient(145deg, #e6f3ff 0%, #d1e7ff 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.2);
+}
+
+.recharge-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.recharge-controls input {
+    width: 80px;
+    padding: 5px;
+    font-size: 0.9em;
+    display: inline;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.recharge-controls input:focus {
+    outline: none;
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.2);
+    background: white;
+}
+
+.recharge-controls button {
+    width: auto;
+    padding: 5px 10px;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    font-size: 0.9em;
+    margin: 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(135, 206, 235, 0.3);
+}
+
+.recharge-controls button:hover {
+    background: linear-gradient(135deg, #4682B4 0%, #2E8B57 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(135, 206, 235, 0.5);
+}
+
+#current-meals-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px dotted #ccc;
+}
+
+.meal-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.meal-section-header h4 {
+    margin: 0;
+}
+
+/* 新增時間選擇器樣式 */
+.meal-section-header input[type="time"] {
+    padding: 8px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.meal-section-header input[type="time"]:focus {
+    outline: none;
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
+    background: white;
+}
+
+/* 新增按鈕樣式 */
+.order-summary-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(135, 206, 235, 0.3);
+}
+.order-summary-btn:hover {
+    background: linear-gradient(135deg, #4682B4 0%, #2E8B57 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(135, 206, 235, 0.5);
+}
+
+/* 歷史訂單列表樣式 */
+#manager-history-modal-content,
+#member-history-modal-content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.history-order-date {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.history-order-item {
+    margin-left: 20px;
+}
+.manager-controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
 .manager-controls button {
-    background-color: var(--color-accent-silver);
-    color: var(--color-bg-dark);
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(135, 206, 235, 0.3);
+}
+.manager-controls button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(135, 206, 235, 0.5);
+}
+.manager-controls #clear-orders-btn {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
+}
+.manager-controls #clear-orders-btn:hover {
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.5);
+}
+.manager-controls #show-all-balances-btn {
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    box-shadow: 0 3px 10px rgba(135, 206, 235, 0.3);
 }
 
-#date-selection-area {
-    border: 1px dashed var(--color-accent-silver);
-    border-radius: var(--border-radius-small);
+.meal-setting-section {
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    background: linear-gradient(145deg, #f0f8ff 0%, #e6f3ff 100%);
+    text-align: left;
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.1);
 }
 
-#calendar-input {
-    background-color: var(--color-bg-dark);
-    color: var(--color-accent-yellow);
-    border: 1px solid var(--color-accent-yellow);
-    border-radius: var(--border-radius-small);
+.meal-setting-section h4 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
 }
 
-/* 餐點設定區 */
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.setting-item label {
+    flex-shrink: 0;
+    width: 80px;
+}
+
 .setting-item input {
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-accent-silver);
-    color: var(--color-text-light);
-    border-radius: var(--border-radius-small);
+    flex-grow: 1;
+    padding: 10px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
 }
+
+.setting-item input:focus {
+    outline: none;
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
+    background: white;
+}
+
 .setting-item button {
-    background-color: var(--color-accent-silver); /* 設定按鈕使用銀色 */
+    flex-shrink: 0;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(135, 206, 235, 0.3);
+}
+.setting-item button:hover {
+    background: linear-gradient(135deg, #4682B4 0%, #2E8B57 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(135, 206, 235, 0.5);
+}
+
+.current-meals-display ul {
+    list-style: none;
+    padding: 0;
 }
 
 .current-meals-display li {
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-accent-silver);
-    border-radius: var(--border-radius-small);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 5px;
 }
+
 .current-meals-display li button {
-    background-color: var(--color-error);
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+.current-meals-display li button:hover {
+    background: linear-gradient(135deg, #FF5252 0%, #FF6B6B 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5);
 }
 
-/* 懸浮視窗 (Modal) */
-.modal-content {
-    background-color: var(--color-bg-dark);
-    border: 2px solid var(--color-accent-yellow);
-    box-shadow: 0 0 15px rgba(255, 204, 0, 0.5); 
-    border-radius: var(--border-radius-main); /* Modal 圓角 */
+/* 訂單總結的樣式 */
+.order-summary-list {
+    list-style: none;
+    padding: 0;
 }
-
-/* 訂單總結列表 */
 .order-summary-list li {
-    background-color: var(--color-primary-blue);
-    border: 1px solid var(--color-accent-silver);
-    border-radius: var(--border-radius-small);
+    background: linear-gradient(145deg, #f0f8ff 0%, #e6f3ff 100%);
+    border: 2px solid rgba(135, 206, 235, 0.2);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.1);
+}
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+.member-list {
+    margin-top: 10px;
+    padding-left: 10px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    color: #555;
+}
+.member-list-toggle {
+    font-size: 0.8em;
+    color: #007bff;
+    cursor: pointer;
+    font-weight: normal;
+}
+.member-list-toggle:hover {
+    text-decoration: underline;
 }
 
-.member-list-toggle {
-    color: var(--color-accent-yellow);
+#date-selection-area {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+    background: linear-gradient(145deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-radius: 12px;
+    border: 2px solid rgba(135, 206, 235, 0.2);
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.1);
+}
+
+#date-selection-area input[type="date"] {
+    padding: 8px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+#date-selection-area input[type="date"]:focus {
+    outline: none;
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
+    background: white;
+}
+
+/* Save Order Button */
+.save-order-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.4);
+    margin-top: 15px;
+}
+
+.save-order-btn:hover {
+    background: linear-gradient(135deg, #4682B4 0%, #2E8B57 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(135, 206, 235, 0.6);
+}
+
+/* Additional sky blue accents */
+h1, h2, h3, h4 {
+    color: #2c5aa0;
+}
+
+#balance-info {
+    color: #2E8B57;
+    font-weight: bold;
+}
+
+/* Enhanced current meals display */
+.current-meals-display li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(135, 206, 235, 0.2);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.current-meals-display li:hover {
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.2);
+    transform: translateY(-1px);
 }
