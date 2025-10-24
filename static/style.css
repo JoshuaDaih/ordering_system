@@ -31,8 +31,7 @@ body {
 .input-group,
 .button-group {
     margin: 15px auto;
-    width: 90%;
-    max-width: 400px;
+    width: 100%;
 }
 
 #login-container h1 {
