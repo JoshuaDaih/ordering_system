@@ -7,20 +7,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
-    <div id="login-container">
-        <h1>訂餐系統登入</h1>
-        <div class="input-group">
-            <input type="text" id="username-input" placeholder="請輸入帳號">
-        </div>
-        <div class="input-group">
-            <input type="password" id="password-input" placeholder="請輸入密碼">
-        </div>
-        <div class="button-group">
-            <button id="login-btn">登入</button>
+    <div class="button-group">
+        <div id="login-container">
+            <h1>訂餐系統登入</h1>
+            <div class="input-group">
+                <input type="text" id="username-input" placeholder="請輸入帳號">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password-input" placeholder="請輸入密碼">
+            </div>
+            <div class="button-group">
+                <button id="login-btn">登入</button>
+            </div>
         </div>
     </div>
-
     <div id="app" style="display:none;">
         <header>
             <span id="current-user"></span>
