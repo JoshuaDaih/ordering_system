@@ -139,6 +139,32 @@ header {
     margin-bottom: 20px;
 }
 
+/* 總餘額統計框樣式 */
+.total-stats-box {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(145deg, #ffffff 0%, #f0f8ff 100%);
+    padding: 10px 15px;
+    border: 2px solid rgba(135, 206, 235, 0.5);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(135, 206, 235, 0.2);
+    font-weight: bold;
+    color: #2c5aa0; /* 您標題使用的深藍色 */
+    z-index: 10;
+}
+
+#total-sum-amount {
+    color: #2E8B57; /* 綠色，代表金額 */
+    font-size: 1.1em;
+}
+
+/* 確保 dashboard 有相對定位，讓統計框能準確定位 */
+#manager-dashboard {
+    position: relative;
+    padding-top: 50px; /* 留出空間給右上角的框 */
+}
+
 /* 新增 - 所有會員餘額列表樣式 */
 #member-balance-list-area {
     margin-top: 20px;

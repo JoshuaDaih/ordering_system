@@ -73,6 +73,30 @@ async function initialize() {
 
 }
 
+async function refreshTotalBalanceSum() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/manager/all_balances`);
+        const balances = await response.json();
+        
+        // 計算所有會員餘額總和
+        const totalSum = Object.values(balances).reduce((acc, curr) => acc + curr, 0);
+        
+        // 更新到介面
+        const sumElement = document.getElementById('total-sum-amount');
+        if (sumElement) {
+            sumElement.textContent = totalSum.toLocaleString(); // 使用 localeString 加上千分位標點
+        }
+    } catch (error) {
+        console.error('無法計算總餘額:', error);
+    }
+}
+
+// 在 showAllBalancesBtn 的儲值邏輯中
+if (rechargeRes.ok) {
+    showAllBalancesBtn.click(); // 重新整理餘額列表
+    await refreshTotalBalanceSum(); // <--- 新增這行，讓右上角的總額同步更新
+}
+
 // 輔助函式：只用於會員介面，載入當日訂單
 async function loadMemberDashboard() {
     // 步驟 1: 載入當日菜單與截止時間
