@@ -130,6 +130,18 @@ def get_all_orders():
     today = datetime.now().strftime("%Y-%m-%d")
     return jsonify(data['order'].get(today, {}))
 
+@app.route('/manager/download_order_data')
+def download_order_data():
+    path = FILES['order']  # 指向 orderdata.json
+    if os.path.exists(path):
+        return send_file(
+            path,
+            as_attachment=True,
+            download_name=f"current_orders_{datetime.now().strftime('%Y%m%d')}.json",
+            mimetype='application/json'
+        )
+    return jsonify({'message': '檔案不存在'}), 404
+
 @app.route('/manager/download_member_data')
 def download_member_data():
     path = FILES['member']  # 指向 memberdata.json
