@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 import json
 import os
 from datetime import datetime
@@ -129,6 +129,18 @@ def update_deadline():
 def get_all_orders():
     today = datetime.now().strftime("%Y-%m-%d")
     return jsonify(data['order'].get(today, {}))
+
+@app.route('/manager/download_member_data')
+def download_member_data():
+    path = FILES['member']  # 指向 memberdata.json
+    if os.path.exists(path):
+        return send_file(
+            path,
+            as_attachment=True,
+            download_name=f"member_data_{datetime.now().strftime('%Y%m%d')}.json",
+            mimetype='application/json'
+        )
+    return jsonify({'message': '檔案不存在'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
